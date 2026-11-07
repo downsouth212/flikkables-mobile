@@ -43,7 +43,7 @@ export default function PassportScreen() {
       contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-22 gap-6"
       refreshControl={<RefreshControl refreshing={s.loading} onRefresh={s.load} tintColor={accent} />}
     >
-      <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Passport</Text>
+      <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>PASSPORT</Text>
 
       <Card>
         <View className="-mx-4 -mt-4 overflow-hidden rounded-t-2xl">

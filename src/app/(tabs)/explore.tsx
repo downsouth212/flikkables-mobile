@@ -34,7 +34,7 @@ export default function ExploreScreen() {
         contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-22 gap-6"
         refreshControl={<RefreshControl refreshing={s.scanning} onRefresh={s.scan} tintColor={accent} />}
       >
-        <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Explore</Text>
+        <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>EXPLORE</Text>
 
         <Section title={`Within ${radiusKm} km`}>
           <Card>

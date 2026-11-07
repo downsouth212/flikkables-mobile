@@ -82,12 +82,7 @@ export function FlightRider({
   useEffect(() => {
     if (reduced) return;
     flutter.set(withRepeat(withTiming(1, { duration: durations.flutter, easing: Easing.linear }), -1, true));
-    bubble.set(
-      withSequence(
-        withTiming(1, timing.enter),
-        withDelay(durations.flight + durations.draw * 2, withTiming(0, timing.exit)),
-      ),
-    );
+    bubble.set(withTiming(1, timing.enter));
     return () => cancelAnimation(flutter);
   }, [reduced, flutter, bubble, saying]);
 
