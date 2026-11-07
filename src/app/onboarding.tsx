@@ -4,6 +4,8 @@ import { Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Card } from '@/components/card';
+import { ListRow } from '@/components/list-row';
+import { CITIES } from '@/features/game/utils/cities';
 import { pressHaptic } from '@/components/pressable';
 import { Fonts } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,8 +18,13 @@ import { formatCoords } from '@/features/game/utils/geo';
 export default function OnboardingScreen() {
   const { user, signOut } = useAuth();
   const refresh = useGameStore((s) => s.refresh);
-  const { fix, error: locationError, locating, locate } = useLocation();
+  const { fix, setFix, error: locationError, locating, locate } = useLocation();
   const [name, setName] = useState(user?.name ?? '');
+  const [picking, setPicking] = useState(false);
+  const [query, setQuery] = useState('');
+  const matches = CITIES.filter((c) =>
+    `${c.name} ${c.country}`.toLowerCase().includes(query.trim().toLowerCase()),
+  ).slice(0, 6);
   const [place, setPlace] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +83,41 @@ export default function OnboardingScreen() {
         <Button variant={fix ? 'secondary' : 'primary'} onPress={findHome} isDisabled={locating}>
           {locating ? <Spinner /> : <Button.Label>{fix ? 'Locate again' : 'Use my location'}</Button.Label>}
         </Button>
+        {picking ? null : (
+          <Button
+            variant="ghost"
+            onPress={() => {
+              pressHaptic();
+              setPicking(true);
+            }}
+          >
+            <Button.Label>Pick a city instead</Button.Label>
+          </Button>
+        )}
       </Card>
+      {picking ? (
+        <View className="gap-3">
+          <TextField>
+            <Label>Home city</Label>
+            <Input className="leading-none" value={query} onChangeText={setQuery} placeholder="Search cities" />
+          </TextField>
+          <Card list>
+            {matches.map((c) => (
+              <ListRow
+                key={c.name}
+                title={c.name}
+                subtitle={c.country}
+                onPress={() => {
+                  setFix({ lat: c.lat, lng: c.lng });
+                  setPlace(`${c.name}, ${c.country}`);
+                  setPicking(false);
+                }}
+              />
+            ))}
+          </Card>
+          {matches.length === 0 ? <Text className="text-sm text-muted">No city by that name yet.</Text> : null}
+        </View>
+      ) : null}
       {error ? <Text className="text-sm text-danger">{error}</Text> : null}
       <Button size="lg" onPress={save} isDisabled={!fix || saving}>
         {saving ? <Spinner color="white" /> : <Button.Label>Start playing</Button.Label>}

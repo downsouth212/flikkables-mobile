@@ -11,8 +11,14 @@ export async function getFix(): Promise<Fix> {
   if (permission.status !== 'granted') {
     throw new Error('Location is off for Flikkables. Turn it on in Settings to find Flikkables near you.');
   }
-  const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000 });
-  const position = last ?? (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
+  const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000 }).catch(() => null);
+  if (last) return { lat: last.coords.latitude, lng: last.coords.longitude };
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
+  const position = await Promise.race([
+    Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).catch(() => null),
+    timeout,
+  ]);
+  if (!position) throw new Error('Couldn’t get a location fix right now. Try again outside, or pick a city.');
   return { lat: position.coords.latitude, lng: position.coords.longitude };
 }
 
@@ -47,5 +53,10 @@ export function useLocation() {
     }
   };
 
-  return { fix, error, locating, locate };
+  const choose = (next: Fix) => {
+    setError(null);
+    setFix(next);
+  };
+
+  return { fix, setFix: choose, error, locating, locate };
 }

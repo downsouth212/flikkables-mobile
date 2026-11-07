@@ -118,3 +118,11 @@ export interface NearbyResult {
   pickup_radius_km: number;
   radius_km: number;
 }
+
+export interface City {
+  name: string;
+  country: string;
+  lat: number;
+  lng: number;
+  population: number;
+}
