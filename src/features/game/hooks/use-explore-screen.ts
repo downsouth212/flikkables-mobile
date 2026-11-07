@@ -56,10 +56,10 @@ export function useExploreScreen() {
       const { flikkable } = await gameApi.pickup(f.id, fix);
       upsert(flikkable);
       Presets.System.notificationSuccess();
-      setNotice(`You picked up ${flikkable.name}. Flick it onward or send it home to ${flikkable.owner_name}.`);
+      setNotice(`You pikked up ${flikkable.name}. Flikk it onward or send it home to ${flikkable.owner_name}.`);
       await scan();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Couldn’t pick it up.');
+      setError(err instanceof Error ? err.message : 'Couldn’t pikk it up.');
     } finally {
       setBusyID(null);
     }
@@ -87,7 +87,7 @@ export function useExploreScreen() {
     try {
       await flick(id, fix ?? {}, 'explore');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'The flick didn’t go through.');
+      setError(err instanceof Error ? err.message : 'The flikk didn’t go through.');
     } finally {
       setBusyID(null);
     }

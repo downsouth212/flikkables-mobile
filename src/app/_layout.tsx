@@ -1,13 +1,15 @@
 import '@/global.css';
 
 import Constants from 'expo-constants';
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { ChakraPetch_600SemiBold, ChakraPetch_700Bold, useFonts } from '@expo-google-fonts/chakra-petch';
+import { DarkTheme, ThemeProvider } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
-import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Newly } from '@newly/sdk-react-native';
 
+import { Colors } from '@/constants/theme';
 import { ThemeSwitchHost } from '@/components/theme-switch-host';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RootStack } from '@/features/game/components/root-stack';
@@ -75,13 +77,26 @@ if (analytics.enabled !== false && newlyIngestKey && newlyApiUrl) {
 // is the keyboard library the design system mandates over RN's KeyboardAvoidingView. It is
 // pre-baked into the scaffold (along with MMKV for persistence and Skia for charts) so the
 // native module set is fixed up front and screen work hot-reloads without a native rebuild.
+const NAV_THEME = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: Colors.dark.background,
+    card: Colors.dark.backgroundElement,
+    primary: Colors.dark.accent,
+    border: Colors.dark.backgroundSelected,
+  },
+};
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // Neon Arcade is dark-only: the tokens are identical in both schemes, so navigation stays dark too.
+  useFonts({ ChakraPetch_700Bold, ChakraPetch_600SemiBold });
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <HeroUINativeProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <ThemeProvider value={NAV_THEME}>
+            <StatusBar style="light" />
             {/* ThemeSwitchHost is always mounted (zero cost when unused) so any theme
                 toggle switches via useThemeSwitch() and the circular reveal plays. */}
             <ThemeSwitchHost>

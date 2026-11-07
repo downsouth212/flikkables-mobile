@@ -14,7 +14,7 @@ export function arcPath(fromLat: number, fromLng: number, toLat: number, toLng: 
   const lift = Math.min(40, length * 0.35);
   const cx = (a.x + b.x) / 2;
   const cy = Math.max(2, (a.y + b.y) / 2 - lift);
-  return { d: `M${a.x} ${a.y}Q${cx} ${cy} ${b.x} ${b.y}`, length: length * 1.25 };
+  return { d: `M${a.x} ${a.y}Q${cx} ${cy} ${b.x} ${b.y}`, length: length * 1.25, a, b, c: { x: cx, y: cy } };
 }
 
 export function formatKm(km: number) {

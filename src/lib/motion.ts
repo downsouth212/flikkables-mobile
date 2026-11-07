@@ -28,6 +28,10 @@ export const durations = {
   gentle: 250,
   /** One-time data draw-in (chart path trim, ring sweep, count-up) — NOT for UI chrome. */
   draw: 500,
+  /** The signature flikk: one unbroken glide across the map, start to landing. */
+  flight: 1500,
+  /** One beat of the wind trail fluttering behind a flying Flikkable. */
+  flutter: 160,
 } as const;
 
 export const easings = {

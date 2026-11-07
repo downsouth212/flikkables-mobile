@@ -7,34 +7,23 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
-export const Colors = {
-  light: {
-    text: '#1B1E2B',
-    background: '#F6F3EC',
-    backgroundElement: '#FFFFFF',
-    backgroundSelected: '#EFEAE0',
-    textSecondary: '#6C6A73',
-    accent: '#E0393E',
-    navy: '#22336B',
-    gold: '#C98A24',
-    ocean: '#CFE6F5',
-    land: '#FBF9F4',
-    landStroke: '#D9D2C2',
-  },
-  dark: {
-    text: '#F2EEE4',
-    background: '#0E1426',
-    backgroundElement: '#18203A',
-    backgroundSelected: '#212A48',
-    textSecondary: '#9AA2BD',
-    accent: '#FF5A5F',
-    navy: '#9DB4FF',
-    gold: '#F1B955',
-    ocean: '#1B2B4D',
-    land: '#2B3760',
-    landStroke: '#3A4775',
-  },
-} as const;
+const NEON = {
+    text: '#F3EEFF',
+    background: '#0B0716',
+    backgroundElement: '#160F2B',
+    backgroundSelected: '#1F1640',
+    textSecondary: '#A397CF',
+    accent: '#B44CFF',
+    navy: '#39FF88',
+    gold: '#FFD23F',
+    ocean: '#120B26',
+    land: '#2A1E55',
+    landStroke: '#5B3FB0',
+    neon: '#39FF88',
+    glow: '#B44CFF',
+  } as const;
+
+export const Colors = { light: NEON, dark: NEON } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
@@ -45,20 +34,26 @@ export const Fonts = Platform.select({
     /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
     /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
+    rounded: 'ChakraPetch_700Bold',
+    display: 'ChakraPetch_700Bold',
+    displaySemi: 'ChakraPetch_600SemiBold',
     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
     sans: 'normal',
     serif: 'serif',
-    rounded: 'normal',
+    rounded: 'ChakraPetch_700Bold',
+    display: 'ChakraPetch_700Bold',
+    displaySemi: 'ChakraPetch_600SemiBold',
     mono: 'monospace',
   },
   web: {
     sans: 'var(--font-display)',
     serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
+    rounded: 'ChakraPetch_700Bold',
+    display: 'ChakraPetch_700Bold',
+    displaySemi: 'ChakraPetch_600SemiBold',
     mono: 'var(--font-mono)',
   },
 });

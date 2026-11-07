@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
+import { Fonts } from '@/constants/theme';
+
 type SectionProps = {
   /** Optional uppercase section label, e.g. "Quick Start", "Settings". */
   title?: string;
@@ -17,7 +19,7 @@ type SectionProps = {
  *
  *   <ScrollView className="flex-1 bg-background"
  *     contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-22 gap-6">
- *     <Text className="text-3xl font-bold text-foreground">Today</Text>
+ *     <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Today</Text>
  *     <Section title="Quick Start"><Card list>…</Card></Section>
  *     <Section title="Recent"><Card list>…</Card></Section>
  *   </ScrollView>
@@ -26,7 +28,7 @@ export function Section({ title, children }: SectionProps) {
   return (
     <View className="gap-3">
       {title ? (
-        <Text className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">{title}</Text>
+        <Text className="px-1 text-xs uppercase tracking-widest text-neon" style={{ fontFamily: Fonts?.displaySemi }}>{title}</Text>
       ) : null}
       {children}
     </View>

@@ -17,7 +17,16 @@ function CityPicker({ query, onQuery, cities, onPick }: { query: string; onQuery
   return (
     <View className="gap-3">
       <TextField>
-        <Input className="leading-none" value={query} onChangeText={onQuery} placeholder="Search cities" />
+        <Input
+          className="leading-none"
+          value={query}
+          onChangeText={onQuery}
+          placeholder="Search cities"
+          autoCorrect={false}
+          autoComplete="off"
+          returnKeyType="search"
+          onSubmitEditing={() => (cities[0] ? onPick(cities[0]) : undefined)}
+        />
       </TextField>
       <Card list>
         {cities.map((c) => (
@@ -31,7 +40,7 @@ function CityPicker({ query, onQuery, cities, onPick }: { query: string; onQuery
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <View className="flex-1 items-center gap-0.5">
-      <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
+      <Text className="text-2xl text-foreground" style={{ fontFamily: Fonts?.display }} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
       <Text className="text-xs text-muted">{label}</Text>
@@ -63,7 +72,7 @@ export default function AdminScreen() {
           </View>
         </Pressable>
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-3xl font-bold text-foreground">Admin</Text>
+          <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Admin</Text>
           {d ? (
             <Chip color={s.isMaster ? 'accent' : 'default'} variant="soft">
               <Chip.Label>{s.isMaster ? 'Master admin' : 'Admin'}</Chip.Label>
@@ -88,16 +97,16 @@ export default function AdminScreen() {
           <Section title="Game rules">
             <Card>
               <TextField>
-                <Label>Pickup distance (metres)</Label>
-                <Input className="leading-none" keyboardType="number-pad" value={s.rules.pickup} onChangeText={s.rules.setPickup} />
+                <Label>Pikkup distance (metres)</Label>
+                <Input className="leading-none" keyboardType="number-pad" returnKeyType="done" value={s.rules.pickup} onChangeText={s.rules.setPickup} />
               </TextField>
               <TextField>
                 <Label>Radar range (km)</Label>
-                <Input className="leading-none" keyboardType="number-pad" value={s.rules.nearby} onChangeText={s.rules.setNearby} />
+                <Input className="leading-none" keyboardType="number-pad" returnKeyType="done" value={s.rules.nearby} onChangeText={s.rules.setNearby} />
               </TextField>
               <TextField>
                 <Label>Most Flikkables a player can own</Label>
-                <Input className="leading-none" keyboardType="number-pad" value={s.rules.maxOwned} onChangeText={s.rules.setMaxOwned} />
+                <Input className="leading-none" keyboardType="number-pad" returnKeyType="done" value={s.rules.maxOwned} onChangeText={s.rules.setMaxOwned} />
               </TextField>
               <Button onPress={press(() => void s.rules.save())} isDisabled={s.busy !== null}>
                 {s.busy === 'settings' ? <Spinner color="white" /> : <Button.Label>Save rules</Button.Label>}
@@ -112,7 +121,7 @@ export default function AdminScreen() {
                 s.dropper.city ? (
                   <ListRow
                     title={`${s.dropper.city.name}, ${s.dropper.city.country}`}
-                    subtitle="Tap to pick another city"
+                    subtitle="Tap to pikk another city"
                     onPress={() => s.setCityQuery(' ')}
                   />
                 ) : (
@@ -125,11 +134,11 @@ export default function AdminScreen() {
               <View className="flex-row gap-3">
                 <TextField className="flex-1">
                   <Label>How many</Label>
-                  <Input className="leading-none" keyboardType="number-pad" value={s.dropper.count} onChangeText={s.dropper.setCount} />
+                  <Input className="leading-none" keyboardType="number-pad" returnKeyType="done" value={s.dropper.count} onChangeText={s.dropper.setCount} />
                 </TextField>
                 <TextField className="flex-1">
                   <Label>Spread (m)</Label>
-                  <Input className="leading-none" keyboardType="number-pad" value={s.dropper.spread} onChangeText={s.dropper.setSpread} />
+                  <Input className="leading-none" keyboardType="number-pad" returnKeyType="done" value={s.dropper.spread} onChangeText={s.dropper.setSpread} />
                 </TextField>
               </View>
               <Button onPress={press(() => void s.dropper.drop())} isDisabled={s.busy !== null}>
@@ -172,7 +181,12 @@ export default function AdminScreen() {
                     onChangeText={s.setNewAdmin}
                     placeholder="their@email.com"
                     autoCapitalize="none"
+                    autoCorrect={false}
                     keyboardType="email-address"
+                    autoComplete="off"
+                    textContentType="emailAddress"
+                    returnKeyType="send"
+                    onSubmitEditing={() => (s.newAdmin.trim().length > 0 ? void s.addAdmin() : undefined)}
                   />
                 </TextField>
                 <Button onPress={press(() => void s.addAdmin())} isDisabled={s.busy !== null || s.newAdmin.trim().length === 0}>
@@ -186,10 +200,10 @@ export default function AdminScreen() {
             {p ? (
               <Card>
                 <View className="gap-0.5">
-                  <Text className="text-lg font-semibold text-foreground">{p.display_name}</Text>
+                  <Text className="text-lg text-foreground" style={{ fontFamily: Fonts?.display }}>{p.display_name}</Text>
                   <Text className="text-sm text-muted">{p.email ?? 'No email on file'}</Text>
                   <Text className="text-sm text-muted">
-                    Home: {p.home_name} · {p.stamps} stamps · {p.flick_count} flicks
+                    Home: {p.home_name} · {p.stamps} stamps · {p.flick_count} flikks
                   </Text>
                   {p.locked ? <Text className="text-sm font-semibold text-danger">Paused</Text> : null}
                 </View>
@@ -217,7 +231,7 @@ export default function AdminScreen() {
               </Card>
             ) : null}
             <TextField>
-              <Input className="leading-none" value={s.playerQuery} onChangeText={s.setPlayerQuery} placeholder="Search name, email or home" autoCapitalize="none" />
+              <Input className="leading-none" value={s.playerQuery} onChangeText={s.setPlayerQuery} placeholder="Search name, email or home" autoCapitalize="none" autoCorrect={false} autoComplete="off" returnKeyType="search" />
             </TextField>
             <Card list>
               {s.players.slice(0, 50).map((pl) => (

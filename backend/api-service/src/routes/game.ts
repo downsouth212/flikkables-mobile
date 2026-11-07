@@ -122,7 +122,7 @@ gameRoutes.post('/game/profile', async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json<{ display_name?: string; home_lat?: number; home_lng?: number; home_name?: string }>()
   const name = (body.display_name ?? '').trim().slice(0, 24)
-  if (name.length < 2) return c.json({ error: 'Pick a name with at least 2 letters.' }, 400)
+  if (name.length < 2) return c.json({ error: 'Pikk a name with at least 2 letters.' }, 400)
   if (typeof body.home_lat !== 'number' || typeof body.home_lng !== 'number') {
     return c.json({ error: 'Set your home spot first.' }, 400)
   }
@@ -185,7 +185,7 @@ gameRoutes.post('/game/flikkables', async (c) => {
   const name = (body.name ?? '').trim().slice(0, 20)
   const emoji = (body.emoji ?? '').trim().slice(0, 8)
   if (name.length < 1) return c.json({ error: 'Give your Flikkable a name.' }, 400)
-  if (!emoji) return c.json({ error: 'Pick a creature.' }, 400)
+  if (!emoji) return c.json({ error: 'Pikk a creature.' }, 400)
   const d = db(c)
   const owned = await d.select({ id: flikkables.id }).from(flikkables).where(eq(flikkables.owner_id, userId))
   const { max_owned } = await loadSettings(c.env)
@@ -333,7 +333,7 @@ gameRoutes.post('/game/flikkables/:id/pickup', async (c) => {
   const d = db(c)
   const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
   if (!f || f.status !== 'landed') return c.json({ error: 'Someone else got there first.' }, 409)
-  if (f.owner_id === userId) return c.json({ error: 'You can’t pick up your own Flikkable.' }, 400)
+  if (f.owner_id === userId) return c.json({ error: 'You can’t pikk up your own Flikkable.' }, 400)
   const dist = haversineKm(body.lat, body.lng, f.current_lat, f.current_lng)
   const { pickup_radius_m } = await loadSettings(c.env)
   if (dist * 1000 > pickup_radius_m) {
@@ -375,7 +375,7 @@ gameRoutes.post('/game/flikkables/:id/return', async (c) => {
   const ownerWaiting = !isHolder && f.status === 'landed' && readyAt && readyAt.getTime() > Date.now()
   if (ownerWaiting) {
     const hours = Math.ceil((readyAt.getTime() - Date.now()) / 3600_000)
-    return c.json({ error: `${f.name} is still exploring. Back in about ${hours} h, or sooner if someone picks it up.` }, 400)
+    return c.json({ error: `${f.name} is still exploring. Back in about ${hours} h, or sooner if someone pikks it up.` }, 400)
   }
   const stamps = isHolder && !isOwner ? Math.ceil(f.total_km / 200) + (RETURN_BONUS[f.rarity] ?? 0) : 0
   const [updated] = await d
@@ -464,13 +464,13 @@ gameRoutes.post('/game/flikkables/:id/postcard', async (c) => {
   const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
   if (!f) return c.json({ error: 'That Flikkable is gone.' }, 404)
   if (f.owner_id !== userId && f.picked_up_by !== userId) return c.json({ error: 'Only its owner can ask for postcards.' }, 403)
-  if (f.status === 'home' || f.current_place === 'Home') return c.json({ error: `${f.name} is home. Flick it somewhere first.` }, 400)
+  if (f.status === 'home' || f.current_place === 'Home') return c.json({ error: `${f.name} is home. Flikk it somewhere first.` }, 400)
   const [already] = await d
     .select()
     .from(postcards)
     .where(and(eq(postcards.flikkable_id, f.id), eq(postcards.place, f.current_place), ne(postcards.status, 'failed')))
   if (already) return c.json({ postcard: already })
-  const prompt = `A vintage travel postcard illustration from ${f.current_place}. A small cute round cartoon ${emojiNoun(f.emoji)} character named ${f.name} poses happily in the foreground like a tourist taking a selfie, with the most iconic landmark of ${f.current_place} behind it. Warm risograph print style, limited palette of airmail red, navy and sky blue on cream paper, soft grain, bold simple shapes. No text, no letters, no words.`
+  const prompt = `A high-quality travel postcard still in the style of a modern 3D animated family feature film. In the foreground, a small adorable round ${emojiNoun(f.emoji)} character named ${f.name}, with a big expressive face, large sparkling eyes, soft detailed fur or skin and a joyful open smile, poses like a delighted tourist taking a selfie. Behind it stands the most iconic landmark of ${f.current_place}, rendered as a lush, colorful animated-movie set. Cinematic warm lighting, soft depth of field, rich saturated colors, polished studio-quality character animation look, crisp and detailed. No text, no letters, no words, no logos.`
   try {
     const job = await newlyAi(c.env, userId).generate(
       { model: 'image', prompt, width: 1024, height: 1024 },

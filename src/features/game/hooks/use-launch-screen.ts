@@ -20,6 +20,7 @@ export function useLaunchScreen() {
   const clearLanding = useGameStore((s) => s.clearLanding);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [saying, setSaying] = useState<string | undefined>(undefined);
 
   const atHome = mine.filter((f) => f.status === 'home');
   const away = mine.filter((f) => f.status !== 'home');
@@ -44,14 +45,15 @@ export function useLaunchScreen() {
     }
   };
 
-  const launch = async () => {
+  const launch = async (line: string) => {
     if (!selected) return;
     setError(null);
+    setSaying(line);
     const from = await getFix().catch(() => ({}));
     try {
       await flick(selected.id, from, 'launch');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'The flick didn’t go through. Try again.');
+      setError(err instanceof Error ? err.message : 'The flikk didn’t go through. Try again.');
       throw err;
     }
   };
@@ -67,6 +69,7 @@ export function useLaunchScreen() {
     reload,
     launch,
     lastLanding,
+    saying,
     canCreate: mine.length < MAX_OWNED,
     create: () => router.push('/create'),
     open: (id: string) => router.push({ pathname: '/flikkable/[id]', params: { id } }),

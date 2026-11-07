@@ -22,7 +22,7 @@ import { distanceStar, nextDistanceGoal, RARITY_LABEL, RARITY_TEXT, statusLine }
 const EVENT_TITLE: Record<JourneyEvent, string> = {
   created: 'Made in',
   flicked: 'Landed in',
-  picked_up: 'Picked up in',
+  picked_up: 'Pikked up in',
   returned: 'Sent home from',
 };
 
@@ -65,7 +65,7 @@ export default function FlikkableScreen() {
           <CreatureStamp emoji={f.emoji} rarity={f.rarity} size="lg" />
         </View>
         <View className="items-center gap-1">
-          <Text className="text-3xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }}>
+          <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>
             {f.name}
           </Text>
           <Text className={cn('text-sm font-semibold', RARITY_TEXT[f.rarity])}>
@@ -78,19 +78,19 @@ export default function FlikkableScreen() {
       <Card>
         <View className="flex-row">
           <View className="flex-1 items-center gap-0.5">
-            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
+            <Text className="text-2xl text-foreground" style={{ fontFamily: Fonts?.display }} numberOfLines={1} adjustsFontSizeToFit>
               {formatKm(f.total_km)}
             </Text>
             <Text className="text-xs text-muted">flown</Text>
           </View>
           <View className="flex-1 items-center gap-0.5">
-            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
+            <Text className="text-2xl text-foreground" style={{ fontFamily: Fonts?.display }} numberOfLines={1} adjustsFontSizeToFit>
               {f.places.length}
             </Text>
             <Text className="text-xs text-muted">cities</Text>
           </View>
           <View className="flex-1 items-center gap-0.5">
-            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
+            <Text className="text-2xl text-foreground" style={{ fontFamily: Fonts?.display }} numberOfLines={1} adjustsFontSizeToFit>
               {f.times_returned}
             </Text>
             <Text className="text-xs text-muted">trips home</Text>
@@ -147,7 +147,9 @@ export default function FlikkableScreen() {
           ),
         )}
         {s.postcards.length === 0 ? (
-          <Text className="text-base text-muted">Ask for a postcard and {f.name} sends one from where it is.</Text>
+          <Card media={<Image source={require('@/assets/images/game/empty-postcard.jpg')} className="aspect-[3/2] w-full" contentFit="cover" />}>
+            <Text className="text-base text-muted">Ask for a postcard and {f.name} sends one from where it is.</Text>
+          </Card>
         ) : null}
         {s.canRequestPostcard ? (
           <Button

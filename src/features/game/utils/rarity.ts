@@ -57,6 +57,6 @@ export function nextDistanceGoal(km: number) {
 export function statusLine(f: Flikkable, myID: string | undefined) {
   if (f.status === 'home') return 'At home';
   if (f.status === 'picked_up' && f.picked_up_by === myID) return `In your hands · from ${f.owner_name}`;
-  if (f.status === 'picked_up') return `Picked up by ${f.picked_up_by_name ?? 'someone'}`;
+  if (f.status === 'picked_up') return `Pikked up by ${f.picked_up_by_name ?? 'someone'}`;
   return `Exploring ${f.current_place}`;
 }

@@ -22,8 +22,9 @@ import { Postmark } from '@/features/game/components/postmark';
 import { WorldMap } from '@/features/game/components/world-map';
 import type { Flikkable, Landing } from '@/features/game/types/game';
 import { formatKm } from '@/features/game/utils/geo';
+import { randomSaying } from '@/features/game/utils/sayings';
 
-const STAMP_AT = durations.base + durations.draw * 2;
+const STAMP_AT = durations.flight;
 
 function useCountUp(target: number, delay: number) {
   const [value, setValue] = useState(0);
@@ -47,13 +48,17 @@ export function LandingCard({
   flikkable,
   onDone,
   onOpen,
+  saying: line,
 }: {
+  /** What the Flikkable shouted on take-off; it keeps shouting it across the map. */
+  saying?: string;
   landing: Landing;
   flikkable: Flikkable;
   onDone: () => void;
   onOpen: () => void;
 }) {
   const reduced = useReducedMotion();
+  const [saying] = useState(() => line ?? randomSaying());
   const rise = useSharedValue(reduced ? 0 : 80);
   const fade = useSharedValue(0);
   const mark = useSharedValue(reduced ? 1 : 0);
@@ -101,10 +106,10 @@ export function LandingCard({
           </View>
           <View className="flex-row items-start justify-between gap-3">
             <View className="flex-1 gap-1">
-              <Text className="text-xs font-semibold tracking-widest text-muted" style={{ fontFamily: Fonts?.mono }}>
+              <Text className="text-xs tracking-widest text-muted" style={{ fontFamily: Fonts?.displaySemi }}>
                 GREETINGS FROM
               </Text>
-              <Text className="text-3xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={2}>
+              <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }} numberOfLines={2}>
                 {landing.city}
               </Text>
               <Text className="text-base text-muted">
@@ -116,14 +121,14 @@ export function LandingCard({
           <WorldMap
             arcs={[{ key: 'flight', from: { lat: landing.from_lat, lng: landing.from_lng }, to: landing }]}
             playKey="flight"
-            pins={[{ key: 'land', lat: landing.lat, lng: landing.lng }]}
+            rider={{ emoji: flikkable.emoji, saying }}
           />
           <View className="flex-row items-center justify-between gap-3">
             <Animated.View style={markStyle}>
               <Postmark top={landing.city} bottom={`${formatKm(landing.km)}`} />
             </Animated.View>
             <View className="items-end">
-              <Text className="text-3xl font-black text-accent" style={{ fontFamily: Fonts?.rounded }}>
+              <Text className="text-3xl text-accent" style={{ fontFamily: Fonts?.display }}>
                 +{stamps}
               </Text>
               <Text className="text-sm text-muted">stamps</Text>

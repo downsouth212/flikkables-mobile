@@ -3,6 +3,7 @@ import { Button, useThemeColor } from 'heroui-native';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { Image } from '@/components/image';
 import { ListRow } from '@/components/list-row';
 import { Pressable, pressHaptic } from '@/components/pressable';
 import { Section } from '@/components/section';
@@ -29,9 +30,12 @@ export default function LaunchScreen() {
         refreshControl={<RefreshControl refreshing={s.refreshing} onRefresh={s.reload} tintColor={accent} />}
       >
         <View className="flex-row items-end justify-between gap-3">
-          <Text className="text-3xl font-bold text-foreground">Launch</Text>
-          <View className="flex-row items-baseline gap-1">
-            <Text className="text-2xl font-black text-accent" style={{ fontFamily: Fonts?.rounded }}>
+          <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>
+            LAUNCH
+          </Text>
+          <View className="flex-row items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3">
+            <Image source={require('@/assets/images/game/icon-stamps.jpg')} className="size-7 rounded-full" />
+            <Text className="text-xl text-gold" style={{ fontFamily: Fonts?.display }}>
               {s.profile?.stamps ?? 0}
             </Text>
             <Text className="text-sm text-muted">stamps</Text>
@@ -41,8 +45,8 @@ export default function LaunchScreen() {
         {s.selected ? (
           <FlickPad flikkable={s.selected} onFlick={s.launch} />
         ) : (
-          <Card>
-            <Text className="text-lg font-semibold text-foreground">Everyone’s out exploring</Text>
+          <Card media={<Image source={require('@/assets/images/game/empty-pad.jpg')} className="aspect-[3/2] w-full" contentFit="cover" />}>
+            <Text className="text-lg text-foreground" style={{ fontFamily: Fonts?.display }}>Everyone’s out exploring</Text>
             <Text className="text-base text-muted">
               All your Flikkables are somewhere in the world. Make a new one, or send one home from its page.
             </Text>
@@ -101,7 +105,7 @@ export default function LaunchScreen() {
               ))}
             </Card>
           ) : (
-            <Text className="text-base text-muted">Flick a Flikkable and it shows up here, wherever it lands.</Text>
+            <Text className="text-base text-muted">Flikk a Flikkable and it shows up here, wherever it lands.</Text>
           )}
           {s.atHome.length > 0 ? (
             <Card list>
@@ -124,12 +128,13 @@ export default function LaunchScreen() {
               s.create();
             }}
           >
-            <Button.Label>Make a new Flikkable</Button.Label>
+            <Button.Label style={{ fontFamily: Fonts?.displaySemi }}>Make a new Flikkable</Button.Label>
           </Button>
         ) : null}
       </ScrollView>
       {s.lastLanding ? (
         <LandingCard
+          saying={s.saying}
           landing={s.lastLanding.landing}
           flikkable={s.lastLanding.flikkable}
           onDone={s.closeLanding}

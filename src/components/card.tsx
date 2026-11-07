@@ -2,6 +2,11 @@ import { Surface } from 'heroui-native';
 import { Children, type ReactNode } from 'react';
 import { View } from 'react-native';
 
+import { Colors } from '@/constants/theme';
+
+// Neon Arcade: every card is a dark panel with a violet rim and a soft glow.
+const GLOW = { boxShadow: `0 0 18px ${Colors.dark.glow}33` };
+
 type CardProps = {
   children: ReactNode;
   /** Render children as a divided list of rows (use with <ListRow>). Default: a padded
@@ -40,7 +45,7 @@ export function Card({ children, list, media }: CardProps) {
   if (list) {
     const items = Children.toArray(children).filter(Boolean);
     return (
-      <Surface className="rounded-2xl px-4 overflow-hidden">
+      <Surface className="rounded-2xl px-4 overflow-hidden border border-border" style={GLOW}>
         {items.map((child, i) => (
           <View key={i}>
             {i > 0 ? <View className="h-px bg-border" /> : null}
@@ -52,11 +57,15 @@ export function Card({ children, list, media }: CardProps) {
   }
   if (media) {
     return (
-      <Surface className="rounded-2xl overflow-hidden">
+      <Surface className="rounded-2xl overflow-hidden border border-border" style={GLOW}>
         {media}
         <View className="p-4 gap-3">{children}</View>
       </Surface>
     );
   }
-  return <Surface className="rounded-2xl p-4 gap-3">{children}</Surface>;
+  return (
+    <Surface className="rounded-2xl p-4 gap-3 border border-border" style={GLOW}>
+      {children}
+    </Surface>
+  );
 }

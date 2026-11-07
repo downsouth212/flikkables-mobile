@@ -2,6 +2,7 @@ import { Button, Spinner, useThemeColor } from 'heroui-native';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { Image } from '@/components/image';
 import { ListRow } from '@/components/list-row';
 import { pressHaptic } from '@/components/pressable';
 import { Section } from '@/components/section';
@@ -33,7 +34,7 @@ export default function ExploreScreen() {
         contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-22 gap-6"
         refreshControl={<RefreshControl refreshing={s.scanning} onRefresh={s.scan} tintColor={accent} />}
       >
-        <Text className="text-3xl font-bold text-foreground">Explore</Text>
+        <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Explore</Text>
 
         <Section title={`Within ${radiusKm} km`}>
           <Card>
@@ -57,15 +58,18 @@ export default function ExploreScreen() {
               </View>
             )}
             {s.result && s.result.nearby.length === 0 ? (
-              <Text className="text-center text-base text-muted">
-                No Flikkables near you right now. Pull down to scan again later.
-              </Text>
+              <View className="gap-2">
+                <Image source={require('@/assets/images/game/empty-radar.jpg')} className="aspect-[3/2] w-full rounded-xl" contentFit="cover" />
+                <Text className="text-center text-base text-muted">
+                  No Flikkables near you right now. Pull down to scan again later.
+                </Text>
+              </View>
             ) : null}
             {sel ? (
               <View className="flex-row items-center gap-3">
                 <CreatureStamp emoji={sel.emoji} rarity={sel.rarity} size="sm" edge="surface" />
                 <View className="flex-1 gap-0.5">
-                  <Text className="text-lg font-semibold text-foreground">{sel.name}</Text>
+                  <Text className="text-lg text-foreground" style={{ fontFamily: Fonts?.display }}>{sel.name}</Text>
                   <Text className="text-sm text-muted">
                     {RARITY_LABEL[sel.rarity]} · {sel.owner_name}’s · {distanceLabel(sel.distance_km)}
                   </Text>
@@ -80,11 +84,11 @@ export default function ExploreScreen() {
                 }}
                 isDisabled={s.busyID === sel.id}
               >
-                {s.busyID === sel.id ? <Spinner color="white" /> : <Button.Label>Pick up {sel.name}</Button.Label>}
+                {s.busyID === sel.id ? <Spinner color="white" /> : <Button.Label>Pikk up {sel.name}</Button.Label>}
               </Button>
             ) : null}
             {sel && sel.distance_km > pickupKm ? (
-              <Text className="text-sm text-muted">Walk within {Math.round(pickupKm * 1000)} m to pick it up.</Text>
+              <Text className="text-sm text-muted">Walk within {Math.round(pickupKm * 1000)} m to pikk it up.</Text>
             ) : null}
           </Card>
           {s.error ? <Text className="text-sm text-danger">{s.error}</Text> : null}
@@ -94,7 +98,7 @@ export default function ExploreScreen() {
         <Section title={`In your hands · ${s.holding.length}`}>
           {s.holding.length === 0 ? (
             <Text className="text-base text-muted">
-              Flikkables you pick up wait here. Flick them onward to a new city, or send them home to their owner for a
+              Flikkables you pikk up wait here. Flikk them onward to a new city, or send them home to their owner for a
               stamp bonus.
             </Text>
           ) : null}
@@ -105,7 +109,7 @@ export default function ExploreScreen() {
                 <View className="flex-row items-center gap-3">
                   <CreatureStamp emoji={f.emoji} rarity={f.rarity} size="sm" edge="surface" />
                   <View className="flex-1 gap-0.5">
-                    <Text className="text-lg font-semibold text-foreground">{f.name}</Text>
+                    <Text className="text-lg text-foreground" style={{ fontFamily: Fonts?.display }}>{f.name}</Text>
                     <Text className="text-sm text-muted">
                       {f.owner_name}’s · {formatKm(f.total_km)} travelled
                     </Text>
@@ -120,7 +124,7 @@ export default function ExploreScreen() {
                     }}
                     isDisabled={s.busyID === f.id}
                   >
-                    <Button.Label>Flick onward</Button.Label>
+                    <Button.Label>Flikk onward</Button.Label>
                   </Button>
                   <Button
                     variant="secondary"

@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Card } from '@/components/card';
+import { Image } from '@/components/image';
 import { ListRow } from '@/components/list-row';
 import { CITIES } from '@/features/game/utils/cities';
 import { pressHaptic } from '@/components/pressable';
@@ -29,6 +30,12 @@ export default function OnboardingScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const choose = (c: (typeof CITIES)[number]) => {
+    setFix({ lat: c.lat, lng: c.lng });
+    setPlace(`${c.name}, ${c.country}`);
+    setPicking(false);
+  };
+
   const findHome = async () => {
     pressHaptic();
     const next = await locate();
@@ -38,7 +45,7 @@ export default function OnboardingScreen() {
   const save = async () => {
     pressHaptic();
     if (!fix || !user) return;
-    if (name.trim().length === 0) return setError('Pick a name other players will see.');
+    if (name.trim().length === 0) return setError('Pikk a name other players will see.');
     setSaving(true);
     setError(null);
     try {
@@ -56,22 +63,35 @@ export default function OnboardingScreen() {
       contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-4 gap-6"
       keyboardShouldPersistTaps="handled"
     >
-      <View className="gap-2 pt-6">
-        <Text className="text-3xl font-bold text-foreground">Set your home spot</Text>
+      <View className="-mx-5">
+        <Image source={require('@/assets/images/game/hero-globe.jpg')} className="aspect-[2/1] w-full" contentFit="cover" />
+      </View>
+      <View className="gap-2">
+        <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Set your home spot</Text>
         <Text className="text-base text-muted">
           Every Flikkable you make starts here, and comes back here when it’s sent home. You’ll get a starter
-          Flikkable to flick right away.
+          Flikkable to flikk right away.
         </Text>
       </View>
       <TextField>
         <Label>Player name</Label>
-        <Input className="leading-none" value={name} onChangeText={setName} placeholder="What other players see" />
+        <Input
+          className="leading-none"
+          value={name}
+          onChangeText={setName}
+          placeholder="What other players see"
+          autoComplete="nickname"
+          textContentType="nickname"
+          autoCapitalize="words"
+          returnKeyType="done"
+          maxLength={24}
+        />
       </TextField>
       <Card>
         <WorldMap home={fix ?? undefined} pins={fix ? [{ key: 'home', lat: fix.lat, lng: fix.lng, emoji: '🏠' }] : []} />
         {fix ? (
           <View className="gap-0.5">
-            <Text className="text-lg font-semibold text-foreground">{place || 'Home'}</Text>
+            <Text className="text-lg text-foreground" style={{ fontFamily: Fonts?.display }}>{place || 'Home'}</Text>
             <Text className="text-sm text-muted" style={{ fontFamily: Fonts?.mono }}>
               {formatCoords(fix.lat, fix.lng)}
             </Text>
@@ -91,7 +111,7 @@ export default function OnboardingScreen() {
               setPicking(true);
             }}
           >
-            <Button.Label>Pick a city instead</Button.Label>
+            <Button.Label>Pikk a city instead</Button.Label>
           </Button>
         )}
       </Card>
@@ -99,7 +119,17 @@ export default function OnboardingScreen() {
         <View className="gap-3">
           <TextField>
             <Label>Home city</Label>
-            <Input className="leading-none" value={query} onChangeText={setQuery} placeholder="Search cities" />
+            <Input
+              className="leading-none"
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search cities"
+              autoComplete="off"
+              autoCorrect={false}
+              autoCapitalize="words"
+              returnKeyType="search"
+              onSubmitEditing={() => (matches[0] ? choose(matches[0]) : undefined)}
+            />
           </TextField>
           <Card list>
             {matches.map((c) => (
@@ -107,11 +137,7 @@ export default function OnboardingScreen() {
                 key={c.name}
                 title={c.name}
                 subtitle={c.country}
-                onPress={() => {
-                  setFix({ lat: c.lat, lng: c.lng });
-                  setPlace(`${c.name}, ${c.country}`);
-                  setPicking(false);
-                }}
+                onPress={() => choose(c)}
               />
             ))}
           </Card>

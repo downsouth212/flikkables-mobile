@@ -19,76 +19,82 @@
  * design/DESIGN.md for the identity this encodes.
  * ════════════════════════════════════════════════════════════════════════════ */
 
-/* @newly:tokens:start — Airmail identity (see design/DESIGN.md). */
+/* @newly:tokens:start — Neon Arcade identity (see design/DESIGN.md). Dark in both schemes. */
 @theme {
-  --color-navy: #22336b;
-  --color-gold: #e3a23a;
-  --color-ocean: #cfe6f5;
-  --color-land: #fbf9f4;
-  --color-teal-ink: #2a9d8f;
-  --color-plum-ink: #7b4bb7;
-  --radius: 0.875rem;
+  --color-navy: #39ff88;
+  --color-gold: #ffd23f;
+  --color-ocean: #120b26;
+  --color-land: #2a1e55;
+  --color-teal-ink: #39ff88;
+  --color-plum-ink: #c98bff;
+  --color-neon: #39ff88;
+  --color-glow: #b44cff;
+  --radius: 1rem;
+  --font-display: ChakraPetch_700Bold;
+  --font-display-semi: ChakraPetch_600SemiBold;
 }
 
 @layer theme {
   :root {
     @variant light {
-      --background: #f6f3ec;
-      --foreground: #1b1e2b;
-      --surface: #ffffff;
-      --surface-foreground: #1b1e2b;
-      --surface-secondary: #efeae0;
-      --surface-tertiary: #e6e0d3;
-      --muted: #6c6a73;
-      --border: #e2dccf;
-      --separator: #e2dccf;
-      --accent: #e0393e;
+      --background: #0b0716;
+      --foreground: #f3eeff;
+      --surface: #160f2b;
+      --surface-foreground: #f3eeff;
+      --surface-secondary: #1f1640;
+      --surface-tertiary: #2a1e55;
+      --muted: #a397cf;
+      --border: #3a2a73;
+      --separator: #2e2358;
+      --accent: #b44cff;
       --accent-foreground: #ffffff;
-      --link: #22336b;
-      --warning: #e3a23a;
-      --success: #2a9d8f;
-      --danger: #c62828;
-      --color-navy: #22336b;
-      --color-gold: #c98a24;
-      --color-ocean: #cfe6f5;
-      --color-land: #fbf9f4;
-      --color-teal-ink: #2a9d8f;
-      --color-plum-ink: #7b4bb7;
+      --link: #39ff88;
+      --warning: #ffd23f;
+      --success: #39ff88;
+      --danger: #ff4d7a;
+      --field-background: #1f1640;
+      --field-foreground: #f3eeff;
+      --field-placeholder: #7d70ab;
+      --field-border: #3a2a73;
+      --color-navy: #39ff88;
+      --color-gold: #ffd23f;
+      --color-ocean: #120b26;
+      --color-land: #2a1e55;
+      --color-teal-ink: #39ff88;
+      --color-plum-ink: #c98bff;
+      --color-neon: #39ff88;
+      --color-glow: #b44cff;
     }
     @variant dark {
-      --background: #0e1426;
-      --foreground: #f2eee4;
-      --surface: #18203a;
-      --surface-foreground: #f2eee4;
-      --surface-secondary: #212a48;
-      --surface-tertiary: #2a3456;
-      --muted: #9aa2bd;
-      --border: #2a3456;
-      --separator: #2a3456;
-      --accent: #ff5a5f;
+      --background: #0b0716;
+      --foreground: #f3eeff;
+      --surface: #160f2b;
+      --surface-foreground: #f3eeff;
+      --surface-secondary: #1f1640;
+      --surface-tertiary: #2a1e55;
+      --muted: #a397cf;
+      --border: #3a2a73;
+      --separator: #2e2358;
+      --accent: #b44cff;
       --accent-foreground: #ffffff;
-      --link: #9db4ff;
-      --warning: #f1b955;
-      --success: #4cc2b3;
-      --danger: #ff6b6b;
-      --color-navy: #9db4ff;
-      --color-gold: #f1b955;
-      --color-ocean: #1b2b4d;
-      --color-land: #2b3760;
-      --color-teal-ink: #4cc2b3;
-      --color-plum-ink: #b08ae6;
+      --link: #39ff88;
+      --warning: #ffd23f;
+      --success: #39ff88;
+      --danger: #ff4d7a;
+      --field-background: #1f1640;
+      --field-foreground: #f3eeff;
+      --field-placeholder: #7d70ab;
+      --field-border: #3a2a73;
+      --color-navy: #39ff88;
+      --color-gold: #ffd23f;
+      --color-ocean: #120b26;
+      --color-land: #2a1e55;
+      --color-teal-ink: #39ff88;
+      --color-plum-ink: #c98bff;
+      --color-neon: #39ff88;
+      --color-glow: #b44cff;
     }
   }
 }
 /* @newly:tokens:end */
 
-/* Web-only display fonts (native uses the system font stack: SF Pro / Roboto). */
-:root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
-}

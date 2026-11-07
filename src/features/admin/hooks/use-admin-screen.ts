@@ -81,7 +81,7 @@ export function useAdminScreen() {
   const drop = () =>
     run('drop', async () => {
       const spot = dropSpot === 'city' ? dropCity : await getFix();
-      if (!spot) throw new Error('Pick a city to drop them in.');
+      if (!spot) throw new Error('Pikk a city to drop them in.');
       const place = dropSpot === 'city' && dropCity ? `${dropCity.name}, ${dropCity.country}` : undefined;
       const result = await adminApi.drop({
         lat: spot.lat,

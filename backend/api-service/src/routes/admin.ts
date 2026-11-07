@@ -104,7 +104,7 @@ adminRoutes.post('/admin/players/:id/lock', async (c) => {
 adminRoutes.post('/admin/players/:id/home', async (c) => {
   const body = await c.req.json<{ lat?: number; lng?: number; name?: string }>()
   if (typeof body.lat !== 'number' || typeof body.lng !== 'number' || Math.abs(body.lat) > 90 || Math.abs(body.lng) > 180) {
-    return c.json({ error: 'Pick a place on the map first.' }, 400)
+    return c.json({ error: 'Pikk a place on the map first.' }, 400)
   }
   const name = (body.name ?? '').trim().slice(0, 60) || nearestPlace(body.lat, body.lng)
   const id = c.req.param('id')
@@ -173,7 +173,7 @@ adminRoutes.delete('/admin/admins/:email', async (c) => {
 
 adminRoutes.post('/admin/drop', async (c) => {
   const body = await c.req.json<{ lat?: number; lng?: number; count?: number; radius_m?: number; place?: string }>()
-  if (typeof body.lat !== 'number' || typeof body.lng !== 'number') return c.json({ error: 'Pick where to drop them.' }, 400)
+  if (typeof body.lat !== 'number' || typeof body.lng !== 'number') return c.json({ error: 'Pikk where to drop them.' }, 400)
   const count = Math.max(1, Math.min(20, Math.round(body.count ?? 5)))
   const radiusM = Math.max(10, Math.min(5000, Math.round(body.radius_m ?? 500)))
   const place = (body.place ?? '').trim().slice(0, 60) || nearestPlace(body.lat, body.lng)
