@@ -40,8 +40,20 @@ export default function ExploreScreen() {
             {s.result ? (
               <Radar items={s.result.nearby} radiusKm={radiusKm} onSelect={s.setSelected} />
             ) : (
-              <View className="aspect-square w-full items-center justify-center">
-                <Spinner />
+              <View className="aspect-square w-full items-center justify-center gap-3">
+                {s.scanning ? (
+                  <Spinner />
+                ) : (
+                  <Button
+                    variant="secondary"
+                    onPress={() => {
+                      pressHaptic();
+                      void s.scan();
+                    }}
+                  >
+                    <Button.Label>Scan again</Button.Label>
+                  </Button>
+                )}
               </View>
             )}
             {s.result && s.result.nearby.length === 0 ? (

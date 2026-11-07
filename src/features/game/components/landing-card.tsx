@@ -61,6 +61,7 @@ export function LandingCard({
   const before = flikkable.total_km - landing.km;
   const crossedBronze = before < 20_000 && flikkable.total_km >= 20_000;
   const seal = useSharedValue(0);
+  const celebrate = () => Presets.System.notificationSuccess();
 
   useEffect(() => {
     fade.set(withTiming(1, timing.enter));
@@ -74,11 +75,12 @@ export function LandingCard({
       withDelay(
         STAMP_AT,
         withSpring(1, springs.settle, (finished) => {
-          if (finished) scheduleOnRN(Presets.System.notificationSuccess);
+          if (finished) scheduleOnRN(celebrate);
         }),
       ),
     );
     seal.set(withDelay(STAMP_AT + durations.draw, withSpring(1, springs.settle)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fade, rise, mark, seal, reduced]);
 
   const sheetStyle = useAnimatedStyle(() => ({ opacity: fade.get(), transform: [{ translateY: rise.get() }] }));

@@ -78,19 +78,19 @@ export default function FlikkableScreen() {
       <Card>
         <View className="flex-row">
           <View className="flex-1 items-center gap-0.5">
-            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }}>
+            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
               {formatKm(f.total_km)}
             </Text>
             <Text className="text-xs text-muted">flown</Text>
           </View>
           <View className="flex-1 items-center gap-0.5">
-            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }}>
+            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
               {f.places.length}
             </Text>
             <Text className="text-xs text-muted">cities</Text>
           </View>
           <View className="flex-1 items-center gap-0.5">
-            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }}>
+            <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
               {f.times_returned}
             </Text>
             <Text className="text-xs text-muted">trips home</Text>

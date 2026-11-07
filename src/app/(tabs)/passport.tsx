@@ -23,7 +23,7 @@ const EVENT_LABEL: Record<JourneyEvent, string> = {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <View className="flex-1 items-center gap-0.5">
-      <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }}>
+      <Text className="text-2xl font-black text-foreground" style={{ fontFamily: Fonts?.rounded }} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
       <Text className="text-xs text-muted">{label}</Text>
@@ -122,7 +122,7 @@ export default function PassportScreen() {
             <ListRow
               key={l.user_id}
               title={l.display_name}
-              subtitle={`${l.flick_count} flicks`}
+              subtitle={`${l.flick_count} ${l.flick_count === 1 ? 'flick' : 'flicks'}`}
               left={
                 <Text
                   className={cn('w-6 text-center text-base font-black', i < 3 ? 'text-accent' : 'text-muted')}
