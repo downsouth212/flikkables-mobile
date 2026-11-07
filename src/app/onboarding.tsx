@@ -69,8 +69,7 @@ export default function OnboardingScreen() {
       <View className="gap-2">
         <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>Set your home spot</Text>
         <Text className="text-base text-muted">
-          Every Flikkable you make starts here, and comes back here when it’s sent home. You’ll get a starter
-          Flikkable to flikk right away.
+          Every Flikkable you make starts here, and comes back here when it’s sent home.
         </Text>
       </View>
       <TextField>
