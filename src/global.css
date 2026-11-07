@@ -19,7 +19,7 @@
  * design/DESIGN.md for the identity this encodes.
  * ════════════════════════════════════════════════════════════════════════════ */
 
-/* @newly:tokens:start — Neon Arcade identity (see design/DESIGN.md). Dark in both schemes. */
+/* @newly:tokens:start — Neon Arcade identity (see design/DESIGN.md). Dark by default, with a light variant. */
 @theme {
   --color-navy: #39ff88;
   --color-gold: #ffd23f;
@@ -37,32 +37,32 @@
 @layer theme {
   :root {
     @variant light {
-      --background: #0b0716;
-      --foreground: #f3eeff;
-      --surface: #160f2b;
-      --surface-foreground: #f3eeff;
-      --surface-secondary: #1f1640;
-      --surface-tertiary: #2a1e55;
-      --muted: #a397cf;
-      --border: #3a2a73;
-      --separator: #2e2358;
-      --accent: #b44cff;
+      --background: #f5f1ff;
+      --foreground: #1b1035;
+      --surface: #ffffff;
+      --surface-foreground: #1b1035;
+      --surface-secondary: #efe8ff;
+      --surface-tertiary: #e4daff;
+      --muted: #5f5288;
+      --border: #d9ccf7;
+      --separator: #e6ddfb;
+      --accent: #9b2cf0;
       --accent-foreground: #ffffff;
-      --link: #39ff88;
-      --warning: #ffd23f;
-      --success: #39ff88;
-      --danger: #ff4d7a;
-      --field-background: #1f1640;
-      --field-foreground: #f3eeff;
-      --field-placeholder: #7d70ab;
-      --field-border: #3a2a73;
-      --color-navy: #39ff88;
-      --color-gold: #ffd23f;
-      --color-ocean: #120b26;
-      --color-land: #2a1e55;
-      --color-teal-ink: #39ff88;
-      --color-plum-ink: #c98bff;
-      --color-neon: #39ff88;
+      --link: #0b8f4a;
+      --warning: #a87800;
+      --success: #0b8f4a;
+      --danger: #d81e5b;
+      --field-background: #ffffff;
+      --field-foreground: #1b1035;
+      --field-placeholder: #9a8fc0;
+      --field-border: #d9ccf7;
+      --color-navy: #0b8f4a;
+      --color-gold: #a87800;
+      --color-ocean: #ebe3ff;
+      --color-land: #d3c4fa;
+      --color-teal-ink: #0b8f4a;
+      --color-plum-ink: #7a22c4;
+      --color-neon: #0b8f4a;
       --color-glow: #b44cff;
     }
     @variant dark {

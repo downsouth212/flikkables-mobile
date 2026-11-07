@@ -23,9 +23,25 @@ const NEON = {
     glow: '#B44CFF',
   } as const;
 
-export const Colors = { light: NEON, dark: NEON } as const;
+const NEON_LIGHT = {
+    text: '#1B1035',
+    background: '#F5F1FF',
+    backgroundElement: '#FFFFFF',
+    backgroundSelected: '#EFE8FF',
+    textSecondary: '#5F5288',
+    accent: '#9B2CF0',
+    navy: '#0B8F4A',
+    gold: '#A87800',
+    ocean: '#EBE3FF',
+    land: '#D3C4FA',
+    landStroke: '#B39BEF',
+    neon: '#0B8F4A',
+    glow: '#B44CFF',
+  } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export const Colors = { light: NEON_LIGHT, dark: NEON } as const;
+
+export type ThemeColor = keyof typeof NEON;
 
 export const Fonts = Platform.select({
   ios: {

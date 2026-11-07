@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { authClient } from '@/lib/auth';
 import { confirmDelete } from '@/lib/confirm';
 import { useGameStore } from '@/features/game/store/game-store';
+import { useSettingsStore } from '@/features/settings/store/settings-store';
 import type { JournalEntry, Leader } from '@/features/game/types/game';
 import { gameApi } from '@/features/game/utils/game-api';
 
@@ -20,6 +21,9 @@ export function usePassportScreen() {
   const setProfile = useGameStore((s) => s.setProfile);
   const mine = useGameStore((s) => s.mine);
   const role = useGameStore((s) => s.role);
+  const refresh = useGameStore((s) => s.refresh);
+  const theme = useSettingsStore((s) => s.theme);
+  const setTheme = useSettingsStore((s) => s.setTheme);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [claiming, setClaiming] = useState(false);
@@ -30,6 +34,8 @@ export function usePassportScreen() {
   const load = async () => {
     setLoading(true);
     try {
+      // Re-reading game state picks up an admin role granted since the last launch.
+      if (user) refresh(user.id).catch(() => undefined);
       const [j, l] = await Promise.all([gameApi.journal(), gameApi.leaderboard()]);
       setJournal(j.entries);
       setLeaders(l.leaders);
@@ -100,6 +106,8 @@ export function usePassportScreen() {
     signOut: () => void signOut(),
     deleteAccount,
     role,
+    theme,
+    setTheme,
     openAdmin: () => router.push('/admin'),
     open: (id: string) => router.push({ pathname: '/flikkable/[id]', params: { id } }),
   };

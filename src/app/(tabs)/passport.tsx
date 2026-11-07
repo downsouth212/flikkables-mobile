@@ -4,7 +4,8 @@ import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { Card } from '@/components/card';
 import { Image } from '@/components/image';
 import { ListRow } from '@/components/list-row';
-import { pressHaptic } from '@/components/pressable';
+import { Pressable, pressHaptic } from '@/components/pressable';
+import { ThemeToggleButton } from '@/components/theme-toggle-button';
 import { Section } from '@/components/section';
 import { Fonts } from '@/constants/theme';
 import { cn } from '@/lib/cn';
@@ -43,7 +44,19 @@ export default function PassportScreen() {
       contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-22 gap-6"
       refreshControl={<RefreshControl refreshing={s.loading} onRefresh={s.load} tintColor={accent} />}
     >
-      <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>PASSPORT</Text>
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>PASSPORT</Text>
+        <View className="flex-row items-center gap-1">
+          {s.role ? (
+            <Pressable onPress={s.openAdmin} accessibilityRole="button" accessibilityLabel="Open admin panel">
+              <View className="size-11 items-center justify-center">
+                <Image source={require('@/assets/images/game/icon-crown.jpg')} className="size-9 rounded-lg" />
+              </View>
+            </Pressable>
+          ) : null}
+          <ThemeToggleButton onSwitched={(next) => s.setTheme(next === 'light' ? 'light' : 'dark')} />
+        </View>
+      </View>
 
       <Card>
         <View className="-mx-4 -mt-4 overflow-hidden rounded-t-2xl">

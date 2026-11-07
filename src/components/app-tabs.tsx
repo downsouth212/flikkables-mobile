@@ -1,10 +1,12 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useThemeColor } from 'heroui-native';
+import { useUniwind } from 'uniwind';
 
 import { Colors } from '@/constants/theme';
 
 export default function AppTabs() {
-  const colors = Colors.dark;
+  const { theme } = useUniwind();
+  const colors = theme === 'light' ? Colors.light : Colors.dark;
   // The selected tab tint tracks the brand ACCENT token (icon + label) — never the iOS
   // default blue, so the native tab bar matches the app's design tokens.
   const accent = useThemeColor('accent');

@@ -16,6 +16,8 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       density: 'cozy',
       setDensity: (density) => set({ density }),
+      theme: 'dark',
+      setTheme: (theme) => set({ theme }),
     }),
     {
       name: 'settings',
