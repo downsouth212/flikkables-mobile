@@ -25,11 +25,21 @@ export const RARITY_BORDER: Record<Rarity, string> = {
   legendary: 'border-gold',
 };
 
+// The web CreateCharacterModal's emoji grid, in its order.
 export const CREATURES = [
-  '🦊', '🐼', '🐸', '🦉', '🐙', '🐢', '🦄', '🐧', '🦋', '🐨', '🐯', '🦁',
-  '🐰', '🐹', '🐻', '🐷', '🐵', '🐤', '🦆', '🦇', '🐺', '🐝', '🐞', '🐌',
-  '🦎', '🦖', '🦕', '🦑', '🦀', '🐡', '🐠', '🐬', '🐳', '🦈', '🐱', '🐶',
+  '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮',
+  '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺',
+  '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐢', '🐍', '🦎', '🦖',
+  '🦕', '🐙', '🦑', '🦐', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈',
 ] as const;
+
+/** Status badge text from the web CharacterCard. */
+export const STATUS_LABEL: Record<string, string> = {
+  home: 'At Home',
+  traveling: 'Traveling',
+  landed: 'Landed',
+  picked_up: 'Pikkd Up',
+};
 
 export type Star = 'bronze' | 'silver' | 'gold' | null;
 

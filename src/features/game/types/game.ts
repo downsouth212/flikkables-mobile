@@ -13,6 +13,23 @@ export interface Profile {
   flick_count: number;
   streak: number;
   last_claim_day: string | null;
+  level: number;
+  stamps_today: number;
+  stamps_week: number;
+  returned_count: number;
+  total_km: number;
+  garden_ids: string[];
+  longest_streak: number;
+  total_logins: number;
+  streak_cycle: number;
+  last_spin_day: string | null;
+  last_spin_prize: string | null;
+  dq_day: string | null;
+  dq_flicked: number;
+  dq_returned: number;
+  dq_flikk_claimed: boolean;
+  dq_return_claimed: boolean;
+  milestones: number[];
 }
 
 export interface Flikkable {
@@ -36,6 +53,10 @@ export interface Flikkable {
   picked_up_at: string | null;
   last_flicked_at: string | null;
   return_ready_at: string | null;
+  happiness: number;
+  last_fed_at: string | null;
+  is_flikkstar: boolean;
+  pickers: string[];
   created_at: string;
 }
 
@@ -55,15 +76,6 @@ export interface Journey {
   stamps: number;
   by_user_id: string;
   by_name: string;
-  created_at: string;
-}
-
-export interface Postcard {
-  id: string;
-  flikkable_id: string;
-  place: string;
-  status: 'queued' | 'running' | 'succeeded' | 'failed';
-  error: string | null;
   created_at: string;
 }
 
@@ -87,18 +99,7 @@ export interface GameState {
   mine: Flikkable[];
   holding: Flikkable[];
   role: AdminRole | null;
-}
-
-export interface JournalEntry {
-  id: string;
-  event: JourneyEvent;
-  place: string;
-  distance_km: number;
-  stamps: number;
-  created_at: string;
-  flikkable_id: string;
-  name: string;
-  emoji: string;
+  online: number;
 }
 
 export interface Leader {
@@ -129,3 +130,66 @@ export interface City {
   lng: number;
   population: number;
 }
+
+export type PlaceKind = 'garden' | 'airport';
+
+export interface Decoration {
+  id: string;
+  kind: PlaceKind;
+  name: string;
+  emoji: string;
+  category: string;
+  stamp_cost: number;
+  happiness_boost: number;
+  description: string | null;
+  level_requirement: number;
+  locked: boolean;
+}
+
+export interface UserItem {
+  id: string;
+  decoration_id: string;
+  kind: PlaceKind;
+  is_placed: boolean;
+  x: number;
+  y: number;
+}
+
+export interface Trophy {
+  id: string;
+  quest_id: string;
+  name: string;
+  description: string;
+  icon: string;
+  rarity: Rarity;
+  stamps_value: number;
+  exchanged: boolean;
+  created_at: string;
+}
+
+export interface Player {
+  user_id: string;
+  display_name: string;
+  home_name: string;
+}
+
+export interface FlickResult {
+  flikkable: Flikkable;
+  landing: Landing;
+  milestone: number | null;
+  level_up: number | null;
+  trophies: Trophy[];
+}
+
+export interface StreakResult {
+  streak: number;
+  longest: number;
+  cycle: number;
+  total_logins: number;
+  reward: { stamps: number; bonus: number; reset: boolean } | null;
+}
+
+export type FlickTarget =
+  | { kind: 'random' }
+  | { kind: 'player'; userID: string; name: string }
+  | { kind: 'city'; city: string };

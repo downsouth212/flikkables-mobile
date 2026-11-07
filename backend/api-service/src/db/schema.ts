@@ -51,6 +51,22 @@ export const profiles = apiSchema.table('profiles', {
   last_claim_day: text('last_claim_day'),
   email: text('email'),
   locked: boolean('locked').notNull().default(false),
+  returned_count: integer('returned_count').notNull().default(0),
+  total_km: doublePrecision('total_km').notNull().default(0),
+  garden_ids: jsonb('garden_ids').$type<string[]>().notNull().default([]),
+  longest_streak: integer('longest_streak').notNull().default(0),
+  total_logins: integer('total_logins').notNull().default(0),
+  streak_cycle: integer('streak_cycle').notNull().default(0),
+  last_spin_day: text('last_spin_day'),
+  last_spin_prize: text('last_spin_prize'),
+  dq_day: text('dq_day'),
+  dq_flicked: integer('dq_flicked').notNull().default(0),
+  dq_returned: integer('dq_returned').notNull().default(0),
+  dq_flikk_claimed: boolean('dq_flikk_claimed').notNull().default(false),
+  dq_return_claimed: boolean('dq_return_claimed').notNull().default(false),
+  milestones: jsonb('milestones').$type<number[]>().notNull().default([]),
+  quests: jsonb('quests').$type<Record<string, { progress: number; completed: boolean; seen?: string[] }>>().notNull().default({}),
+  last_seen_at: timestamp('last_seen_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -78,6 +94,11 @@ export const flikkables = apiSchema.table(
     picked_up_by_name: text('picked_up_by_name'),
     picked_up_at: timestamp('picked_up_at', { withTimezone: true }),
     last_flicked_at: timestamp('last_flicked_at', { withTimezone: true }),
+    happiness: integer('happiness').notNull().default(5),
+    last_fed_at: timestamp('last_fed_at', { withTimezone: true }),
+    mood_day: text('mood_day'),
+    is_flikkstar: boolean('is_flikkstar').notNull().default(false),
+    pickers: jsonb('pickers').$type<string[]>().notNull().default([]),
     created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
@@ -146,3 +167,51 @@ export const gameSettings = apiSchema.table('game_settings', {
   value: jsonb('value').notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const decorations = apiSchema.table('decorations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  kind: text('kind').notNull(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  category: text('category').notNull(),
+  stamp_cost: integer('stamp_cost').notNull().default(0),
+  happiness_boost: integer('happiness_boost').notNull().default(0),
+  description: text('description'),
+  level_requirement: integer('level_requirement').notNull().default(1),
+  locked: boolean('locked').notNull().default(false),
+  created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export type DecorationRow = typeof decorations.$inferSelect
+
+export const userItems = apiSchema.table(
+  'user_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user_id: text('user_id').notNull(),
+    decoration_id: uuid('decoration_id').notNull(),
+    kind: text('kind').notNull(),
+    is_placed: boolean('is_placed').notNull().default(false),
+    x: doublePrecision('x').notNull().default(50),
+    y: doublePrecision('y').notNull().default(50),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ userIdx: index('user_items_user_idx').on(t.user_id) }),
+)
+
+export const trophies = apiSchema.table(
+  'trophies',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user_id: text('user_id').notNull(),
+    quest_id: text('quest_id').notNull(),
+    name: text('name').notNull(),
+    description: text('description').notNull(),
+    icon: text('icon').notNull(),
+    rarity: text('rarity').notNull(),
+    stamps_value: integer('stamps_value').notNull().default(100),
+    exchanged: boolean('exchanged').notNull().default(false),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ userIdx: index('trophies_user_idx').on(t.user_id) }),
+)

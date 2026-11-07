@@ -29,8 +29,8 @@ export default function AppTabs() {
   return (
     <NativeTabs backgroundColor={colors.background} tintColor={accent}>
       <NativeTabs.Trigger name="index" disableAutomaticContentInsets>
-        <NativeTabs.Trigger.Label>Launch</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="paperplane.fill" md="send" />
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="explore" disableAutomaticContentInsets>
@@ -38,10 +38,6 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf="location.north.circle.fill" md="explore" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="passport" disableAutomaticContentInsets>
-        <NativeTabs.Trigger.Label>Passport</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="book.closed.fill" md="menu_book" />
-      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

@@ -3,6 +3,7 @@ import { Children, type ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import { cn } from '@/lib/cn';
 
 // Neon Arcade: every card is a dark panel with a violet rim and a soft glow.
 const GLOW = { boxShadow: `0 0 18px ${Colors.dark.glow}33` };
@@ -18,6 +19,8 @@ type CardProps = {
    *  inside the padded content area picks up mismatched corners (square-inside-rounded is
    *  the #1 slop tell). For a small INSET thumbnail next to text, use rounded-lg. */
   media?: ReactNode;
+  /** Layout only (flex-1 in a row of cards, a rarity border). */
+  className?: string;
 };
 
 /**
@@ -41,11 +44,11 @@ type CardProps = {
  *     <ListRow title="Deadlift" subtitle="130 kg × 5" onPress={…} />
  *   </Card>
  */
-export function Card({ children, list, media }: CardProps) {
+export function Card({ children, list, media, className }: CardProps) {
   if (list) {
     const items = Children.toArray(children).filter(Boolean);
     return (
-      <Surface className="rounded-2xl px-4 overflow-hidden border border-border" style={GLOW}>
+      <Surface className={cn('rounded-2xl px-4 overflow-hidden border border-border', className)} style={GLOW}>
         {items.map((child, i) => (
           <View key={i}>
             {i > 0 ? <View className="h-px bg-border" /> : null}
@@ -57,14 +60,14 @@ export function Card({ children, list, media }: CardProps) {
   }
   if (media) {
     return (
-      <Surface className="rounded-2xl overflow-hidden border border-border" style={GLOW}>
+      <Surface className={cn('rounded-2xl overflow-hidden border border-border', className)} style={GLOW}>
         {media}
         <View className="p-4 gap-3">{children}</View>
       </Surface>
     );
   }
   return (
-    <Surface className="rounded-2xl p-4 gap-3 border border-border" style={GLOW}>
+    <Surface className={cn('rounded-2xl p-4 gap-3 border border-border', className)} style={GLOW}>
       {children}
     </Surface>
   );

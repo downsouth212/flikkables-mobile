@@ -1,12 +1,12 @@
 import { Hono } from 'hono'
-import { and, desc, eq, inArray, ne, or } from 'drizzle-orm'
+import { and, desc, eq, gt, gte, ilike, inArray, ne, or, sql } from 'drizzle-orm'
 import type { HonoEnv } from '../env'
 import { authMiddleware } from '../middleware/auth'
 import { createDb } from '../db/client'
-import { flikkables, journeys, postcards, profiles, type FlikkableRow, type ProfileRow } from '../db/schema'
+import { flikkables, journeys, postcards, profiles, trophies, userItems, type FlikkableRow, type ProfileRow } from '../db/schema'
 import { CITIES, type City } from '../game-cities'
-import { newlyAi, NewlyAiError } from '../platform/ai'
 import { adminRole, loadSettings } from '../game-admin'
+import { catchUpMood, continentFor, dayKey, isCapital, levelFor, MILESTONES, progressQuest, type NewTrophy, type QuestState } from '../game-rules'
 
 export const gameRoutes = new Hono<HonoEnv>()
 gameRoutes.use('/game/*', authMiddleware)
@@ -17,13 +17,12 @@ gameRoutes.use('/game/*', async (c, next) => {
   return next()
 })
 
-const RETURN_WAIT_HOURS = 8
 export const SYSTEM_OWNER_ID = 'flikkables-team'
-const STARTER_EMOJIS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🐢', '🦄', '🐧', '🦋', '🐨']
 const RARITY_BONUS: Record<string, number> = { common: 0, uncommon: 0, rare: 2, epic: 5, legendary: 10 }
 const RETURN_BONUS: Record<string, number> = { common: 0, uncommon: 0, rare: 5, epic: 10, legendary: 20 }
+const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary']
 
-function db(c: { env: HonoEnv['Bindings'] }) {
+export function db(c: { env: HonoEnv['Bindings'] }) {
   return createDb(c.env.DATABASE_URL)
 }
 
@@ -53,38 +52,39 @@ export function offset(lat: number, lng: number, km: number) {
   return { lat: Math.max(-85, Math.min(85, nLat)), lng: ((nLng + 540) % 360) - 180 }
 }
 
+// Population-weighted, as the web's flick picked its city.
 function pickCity(excludeName?: string): City {
   const pool = CITIES.filter((city) => `${city.name}, ${city.country}` !== excludeName)
-  const weights = pool.map((city) => Math.log10(city.population))
-  let roll = Math.random() * weights.reduce((sum, w) => sum + w, 0)
-  for (let i = 0; i < pool.length; i++) {
-    roll -= weights[i]!
-    if (roll <= 0) return pool[i]!
+  let roll = Math.random() * pool.reduce((sum, city) => sum + city.population, 0)
+  for (const city of pool) {
+    roll -= city.population
+    if (roll <= 0) return city
   }
   return pool[pool.length - 1]!
 }
 
+// The web rolled each rarity at 20%.
 export function rollRarity() {
-  const roll = Math.random() * 100
-  if (roll < 2) return 'legendary'
-  if (roll < 10) return 'epic'
-  if (roll < 25) return 'rare'
-  if (roll < 50) return 'uncommon'
-  return 'common'
+  return RARITIES[Math.floor(Math.random() * RARITIES.length)]!
 }
 
-function flickStamps(rarity: string, km: number, population: number) {
+function flickStamps(f: FlikkableRow, km: number, population: number) {
   let stamps = 1 + Math.ceil(km / 1000)
   if (population >= 1_000_000) stamps += 3
-  return stamps + (RARITY_BONUS[rarity] ?? 0)
+  stamps += RARITY_BONUS[f.rarity] ?? 0
+  return f.is_flikkstar ? Math.ceil(stamps * 1.2) : stamps
+}
+
+function returnWaitHours(f: FlikkableRow) {
+  return f.is_flikkstar ? 4 : 8
 }
 
 function returnReadyAt(f: FlikkableRow) {
   if (!f.last_flicked_at) return null
-  return new Date(f.last_flicked_at.getTime() + RETURN_WAIT_HOURS * 3600_000)
+  return new Date(f.last_flicked_at.getTime() + returnWaitHours(f) * 3600_000)
 }
 
-function serialize(f: FlikkableRow) {
+export function serialize(f: FlikkableRow) {
   return { ...f, return_ready_at: returnReadyAt(f)?.toISOString() ?? null }
 }
 
@@ -93,8 +93,21 @@ async function requireProfile(c: { env: HonoEnv['Bindings']; get: (key: 'userId'
   return profile
 }
 
-function todayKey(offsetDays = 0) {
-  return new Date(Date.now() + offsetDays * 86400_000).toISOString().slice(0, 10)
+// Daily quest counters live on the profile and start over each UTC day.
+export function dailyQuest(p: ProfileRow) {
+  if (p.dq_day === dayKey()) return { dq_day: p.dq_day, dq_flicked: p.dq_flicked, dq_returned: p.dq_returned, dq_flikk_claimed: p.dq_flikk_claimed, dq_return_claimed: p.dq_return_claimed }
+  return { dq_day: dayKey(), dq_flicked: 0, dq_returned: 0, dq_flikk_claimed: false, dq_return_claimed: false }
+}
+
+async function saveTrophies(c: { env: HonoEnv['Bindings'] }, userId: string, list: (NewTrophy | null)[]) {
+  const rows = list.filter((t): t is NewTrophy => t !== null)
+  if (rows.length === 0) return []
+  await db(c).insert(trophies).values(rows.map((t) => ({ ...t, user_id: userId })))
+  return rows
+}
+
+function countryOf(place: string) {
+  return place.split(',').pop()?.trim() ?? place
 }
 
 gameRoutes.get('/game/state', async (c) => {
@@ -102,19 +115,59 @@ gameRoutes.get('/game/state', async (c) => {
   const d = db(c)
   const [profile] = await d.select().from(profiles).where(eq(profiles.user_id, userId))
   const role = await adminRole(c)
-  if (!profile) return c.json({ profile: null, mine: [], holding: [], role })
+  if (!profile) return c.json({ profile: null, mine: [], holding: [], role, online: 0 })
   const email = c.get('email')?.toLowerCase() ?? null
-  if (email && profile.email !== email) await d.update(profiles).set({ email }).where(eq(profiles.user_id, userId))
-  const rows = await d
+  let rows = await d
     .select()
     .from(flikkables)
     .where(or(eq(flikkables.owner_id, userId), eq(flikkables.picked_up_by, userId)))
     .orderBy(desc(flikkables.created_at))
+
+  const today = dayKey()
+  let garden = profile.garden_ids
+  const moodUpdates = rows
+    .filter((f) => f.owner_id === userId)
+    .map((f) => ({ f, next: catchUpMood(f, today) }))
+    .filter((u) => u.next !== null)
+  for (const { f, next } of moodUpdates) {
+    if (!next) continue
+    await d.update(flikkables).set({ happiness: next.happiness, mood_day: next.mood_day }).where(eq(flikkables.id, f.id))
+    // A sad Flikkable waiting at the airport goes back to the garden.
+    if (next.sad && f.status === 'home' && !garden.includes(f.id)) garden = [...garden, f.id]
+  }
+  if (moodUpdates.length > 0) {
+    rows = rows.map((f) => {
+      const u = moodUpdates.find((m) => m.f.id === f.id)?.next
+      return u ? { ...f, happiness: u.happiness, mood_day: u.mood_day } : f
+    })
+  }
+  const ownedIds = new Set(rows.filter((f) => f.owner_id === userId).map((f) => f.id))
+  garden = garden.filter((id) => ownedIds.has(id))
+
+  const startOfDay = new Date(`${today}T00:00:00Z`)
+  const startOfWeek = new Date(startOfDay.getTime() - ((startOfDay.getUTCDay() + 6) % 7) * 86400_000)
+  const [[stampTotals], [online], [updated]] = await Promise.all([
+    d
+      .select({
+        day: sql<number>`coalesce(sum(case when ${journeys.created_at} >= ${startOfDay.toISOString()} then ${journeys.stamps} else 0 end), 0)::int`,
+        week: sql<number>`coalesce(sum(${journeys.stamps}), 0)::int`,
+      })
+      .from(journeys)
+      .where(and(eq(journeys.by_user_id, userId), gte(journeys.created_at, startOfWeek))),
+    d.select({ n: sql<number>`count(*)::int` }).from(profiles).where(gt(profiles.last_seen_at, new Date(Date.now() - 5 * 60_000))),
+    d
+      .update(profiles)
+      .set({ last_seen_at: new Date(), garden_ids: garden, ...dailyQuest(profile), ...(email && profile.email !== email ? { email } : {}) })
+      .where(eq(profiles.user_id, userId))
+      .returning(),
+  ])
+  const p = updated ?? profile
   return c.json({
-    profile,
+    profile: { ...p, level: levelFor(p.total_km), stamps_today: stampTotals?.day ?? 0, stamps_week: stampTotals?.week ?? 0 },
     mine: rows.filter((r) => r.owner_id === userId).map(serialize),
     holding: rows.filter((r) => r.owner_id !== userId).map(serialize),
     role,
+    online: Math.max(online?.n ?? 1, 1),
   })
 })
 
@@ -148,32 +201,6 @@ gameRoutes.post('/game/profile', async (c) => {
       email: c.get('email')?.toLowerCase() ?? null,
     })
     .returning()
-  const emoji = STARTER_EMOJIS[Math.floor(Math.random() * STARTER_EMOJIS.length)]!
-  const [starter] = await d
-    .insert(flikkables)
-    .values({
-      owner_id: userId,
-      owner_name: name,
-      name: 'Pip',
-      emoji,
-      rarity: 'uncommon',
-      current_lat: body.home_lat,
-      current_lng: body.home_lng,
-      current_place: homeName,
-      home_lat: body.home_lat,
-      home_lng: body.home_lng,
-    })
-    .returning()
-  if (!starter) throw new Error('insert failed')
-  await d.insert(journeys).values({
-    flikkable_id: starter.id,
-    event: 'created',
-    place: homeName,
-    lat: body.home_lat,
-    lng: body.home_lng,
-    by_user_id: userId,
-    by_name: name,
-  })
   return c.json({ profile })
 })
 
@@ -181,15 +208,17 @@ gameRoutes.post('/game/flikkables', async (c) => {
   const userId = c.get('userId')
   const profile = await requireProfile(c)
   if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
-  const body = await c.req.json<{ name?: string; emoji?: string }>()
+  const body = await c.req.json<{ name?: string; emoji?: string; lat?: number; lng?: number }>()
   const name = (body.name ?? '').trim().slice(0, 20)
   const emoji = (body.emoji ?? '').trim().slice(0, 8)
-  if (name.length < 1) return c.json({ error: 'Give your Flikkable a name.' }, 400)
-  if (!emoji) return c.json({ error: 'Pikk a creature.' }, 400)
+  if (name.length < 1) return c.json({ error: 'Please enter a name for your Flikkable' }, 400)
+  if (!emoji) return c.json({ error: 'Choose an Emoji' }, 400)
   const d = db(c)
-  const owned = await d.select({ id: flikkables.id }).from(flikkables).where(eq(flikkables.owner_id, userId))
+  const owned = await d.select({ id: flikkables.id, rarity: flikkables.rarity }).from(flikkables).where(eq(flikkables.owner_id, userId))
   const { max_owned } = await loadSettings(c.env)
   if (owned.length >= max_owned) return c.json({ error: `You can keep up to ${max_owned} Flikkables.` }, 400)
+  const lat = typeof body.lat === 'number' ? body.lat : profile.home_lat
+  const lng = typeof body.lng === 'number' ? body.lng : profile.home_lng
   const [created] = await d
     .insert(flikkables)
     .values({
@@ -198,24 +227,40 @@ gameRoutes.post('/game/flikkables', async (c) => {
       name,
       emoji,
       rarity: rollRarity(),
-      current_lat: profile.home_lat,
-      current_lng: profile.home_lng,
+      current_lat: lat,
+      current_lng: lng,
       current_place: profile.home_name,
       home_lat: profile.home_lat,
       home_lng: profile.home_lng,
+      happiness: 5,
+      mood_day: dayKey(),
     })
     .returning()
   if (!created) throw new Error('insert failed')
-  await d.insert(journeys).values({
-    flikkable_id: created.id,
-    event: 'created',
-    place: profile.home_name,
-    lat: profile.home_lat,
-    lng: profile.home_lng,
-    by_user_id: userId,
-    by_name: profile.display_name,
-  })
-  return c.json({ flikkable: serialize(created) })
+  const rarities = new Set([...owned.map((o) => o.rarity), created.rarity])
+  const quest = progressQuest(profile.quests, 'rarity_collector', { atLeast: rarities.size })
+  await Promise.all([
+    d.insert(journeys).values({ flikkable_id: created.id, event: 'created', place: profile.home_name, lat, lng, by_user_id: userId, by_name: profile.display_name }),
+    d.update(profiles).set({ garden_ids: [...profile.garden_ids, created.id], quests: quest.state }).where(eq(profiles.user_id, userId)),
+  ])
+  const earned = await saveTrophies(c, userId, [quest.trophy])
+  return c.json({ flikkable: serialize(created), trophies: earned })
+})
+
+gameRoutes.delete('/game/flikkables/:id', async (c) => {
+  const userId = c.get('userId')
+  const d = db(c)
+  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
+  if (!f || f.owner_id !== userId) return c.json({ error: 'That Flikkable is gone.' }, 404)
+  if (f.status !== 'home') return c.json({ error: `${f.name} is out exploring.` }, 400)
+  await d.delete(journeys).where(eq(journeys.flikkable_id, f.id))
+  await d.delete(postcards).where(eq(postcards.flikkable_id, f.id))
+  await d.delete(flikkables).where(eq(flikkables.id, f.id))
+  await d
+    .update(profiles)
+    .set({ garden_ids: sql`coalesce((select jsonb_agg(x) from jsonb_array_elements(${profiles.garden_ids}) x where x <> to_jsonb(${f.id}::text)), '[]'::jsonb)` })
+    .where(eq(profiles.user_id, userId))
+  return c.json({ ok: true })
 })
 
 gameRoutes.get('/game/flikkables/:id', async (c) => {
@@ -223,34 +268,101 @@ gameRoutes.get('/game/flikkables/:id', async (c) => {
   const d = db(c)
   const [f] = await d.select().from(flikkables).where(eq(flikkables.id, id))
   if (!f) return c.json({ error: 'That Flikkable is gone.' }, 404)
-  const [trail, cards] = await Promise.all([
-    d.select().from(journeys).where(eq(journeys.flikkable_id, id)).orderBy(desc(journeys.created_at)).limit(60),
-    d.select().from(postcards).where(eq(postcards.flikkable_id, id)).orderBy(desc(postcards.created_at)).limit(30),
-  ])
-  return c.json({ flikkable: serialize(f), journeys: trail, postcards: cards })
+  const trail = await d.select().from(journeys).where(eq(journeys.flikkable_id, id)).orderBy(desc(journeys.created_at)).limit(60)
+  return c.json({ flikkable: serialize(f), journeys: trail })
+})
+
+// Garden <-> airport. A Flikkable at home and not in the garden is at the airport.
+gameRoutes.post('/game/garden', async (c) => {
+  const userId = c.get('userId')
+  const profile = await requireProfile(c)
+  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
+  const body = await c.req.json<{ ids?: string[]; to?: 'garden' | 'airport' }>()
+  const ids = body.ids ?? []
+  const rows = ids.length ? await db(c).select().from(flikkables).where(and(inArray(flikkables.id, ids), eq(flikkables.owner_id, userId), eq(flikkables.status, 'home'))) : []
+  let garden = profile.garden_ids
+  if (body.to === 'garden') garden = [...new Set([...garden, ...rows.map((r) => r.id)])]
+  if (body.to === 'airport') {
+    const ready = rows.filter((r) => r.happiness >= 3).map((r) => r.id)
+    if (ready.length === 0 && rows.length > 0) return c.json({ error: 'Character too sad to travel' }, 400)
+    garden = garden.filter((id) => !ready.includes(id))
+  }
+  const [updated] = await db(c).update(profiles).set({ garden_ids: garden }).where(eq(profiles.user_id, userId)).returning()
+  return c.json({ garden_ids: updated?.garden_ids ?? garden })
+})
+
+gameRoutes.post('/game/flikkables/:id/feed', async (c) => {
+  const userId = c.get('userId')
+  const profile = await requireProfile(c)
+  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
+  const d = db(c)
+  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
+  if (!f || f.owner_id !== userId) return c.json({ error: 'That Flikkable is gone.' }, 404)
+  if (f.last_fed_at && dayKey(f.last_fed_at) === dayKey()) return c.json({ error: 'Your Flikkable was already fed! Come back tomorrow' }, 400)
+  if (profile.stamps < 1) return c.json({ error: 'Insufficient stamps' }, 400)
+  const [updated] = await d.update(flikkables).set({ happiness: 5, last_fed_at: new Date() }).where(eq(flikkables.id, f.id)).returning()
+  await d.update(profiles).set({ stamps: profile.stamps - 1 }).where(eq(profiles.user_id, userId))
+  return c.json({ flikkable: updated ? serialize(updated) : null })
+})
+
+gameRoutes.post('/game/flikkables/:id/play', async (c) => {
+  const userId = c.get('userId')
+  const d = db(c)
+  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
+  if (!f || f.owner_id !== userId) return c.json({ error: 'That Flikkable is gone.' }, 404)
+  const [updated] = await d.update(flikkables).set({ happiness: Math.min(f.happiness + 1, 5) }).where(eq(flikkables.id, f.id)).returning()
+  return c.json({ flikkable: updated ? serialize(updated) : null })
+})
+
+gameRoutes.get('/game/players', async (c) => {
+  const q = (c.req.query('q') ?? '').trim()
+  if (q.length < 2) return c.json({ players: [] })
+  const rows = await db(c)
+    .select({ user_id: profiles.user_id, display_name: profiles.display_name, home_name: profiles.home_name })
+    .from(profiles)
+    .where(and(ilike(profiles.display_name, `%${q.replace(/[%_]/g, '')}%`), ne(profiles.user_id, c.get('userId'))))
+    .limit(10)
+  return c.json({ players: rows })
 })
 
 gameRoutes.post('/game/flikkables/:id/flick', async (c) => {
   const userId = c.get('userId')
   const profile = await requireProfile(c)
   if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
-  const body = await c.req.json<{ lat?: number; lng?: number; power?: number }>()
+  const body = await c.req.json<{ lat?: number; lng?: number; target_user_id?: string; city?: string }>()
   const d = db(c)
   const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
   if (!f) return c.json({ error: 'That Flikkable is gone.' }, 404)
   const isOwnerAtHome = f.owner_id === userId && f.status === 'home'
   const isHolder = f.status === 'picked_up' && f.picked_up_by === userId
   if (!isOwnerAtHome && !isHolder) return c.json({ error: `${f.name} is not in your hands right now.` }, 400)
+  if (isOwnerAtHome && profile.garden_ids.includes(f.id)) return c.json({ error: `Move ${f.name} to the airport first.` }, 400)
 
   const fromLat = typeof body.lat === 'number' ? body.lat : f.current_lat
   const fromLng = typeof body.lng === 'number' ? body.lng : f.current_lng
-  const city = pickCity(f.current_place)
-  const place = `${city.name}, ${city.country}`
-  const spot = offset(city.lat, city.lng, (Math.random() - 0.5) * 100)
+  let city = pickCity(f.current_place)
+  let place = `${city.name}, ${city.country}`
+  let spot = offset(city.lat, city.lng, Math.random() * 50)
+  if (body.city) {
+    const chosen = CITIES.find((x) => `${x.name}, ${x.country}` === body.city)
+    if (chosen) {
+      city = chosen
+      place = body.city
+      spot = offset(city.lat, city.lng, Math.random() * 50)
+    }
+  }
+  if (body.target_user_id) {
+    const [target] = await d.select().from(profiles).where(eq(profiles.user_id, body.target_user_id))
+    if (!target) return c.json({ error: 'That player could not be found.' }, 404)
+    place = target.home_name
+    spot = offset(target.home_lat, target.home_lng, Math.random() * 50)
+    city = { name: target.home_name, country: countryOf(target.home_name), lat: target.home_lat, lng: target.home_lng, population: 0 }
+  }
   const landing = offset(spot.lat, spot.lng, (Math.random() * 50 + 50) / 1000)
   const km = haversineKm(fromLat, fromLng, landing.lat, landing.lng)
-  const stamps = flickStamps(f.rarity, km, city.population)
+  const stamps = flickStamps(f, km, city.population)
   const places = f.places.includes(place) ? f.places : [...f.places, place]
+  const totalKm = f.total_km + km
 
   const [updated] = await d
     .update(flikkables)
@@ -259,7 +371,7 @@ gameRoutes.post('/game/flikkables/:id/flick', async (c) => {
       current_lat: landing.lat,
       current_lng: landing.lng,
       current_place: place,
-      total_km: f.total_km + km,
+      total_km: totalKm,
       places,
       picked_up_by: null,
       picked_up_by_name: null,
@@ -269,27 +381,144 @@ gameRoutes.post('/game/flikkables/:id/flick', async (c) => {
     .where(eq(flikkables.id, f.id))
     .returning()
   if (!updated) throw new Error('update failed')
+
+  const dq = dailyQuest(profile)
+  dq.dq_flicked += 1
+  let quests: QuestState = profile.quests
+  const earned: (NewTrophy | null)[] = []
+  const step = (id: string, update: Parameters<typeof progressQuest>[2]) => {
+    const r = progressQuest(quests, id, update)
+    quests = r.state
+    earned.push(r.trophy)
+  }
+  step('speed_flicker', { atLeast: dq.dq_flicked })
+  step('world_traveler', { atLeast: new Set(places.map(countryOf)).size })
+  step('distance_champion', { atLeast: Math.floor(totalKm) })
+  step('continental_tour', { seen: continentFor(landing.lat, landing.lng) })
+  if (isCapital(city.name)) step('lucky_landing', { seen: city.name })
+
+  const userKm = profile.total_km + km
+  const milestone = MILESTONES.find((m) => userKm >= m && !profile.milestones.includes(m)) ?? null
+  const levelBefore = levelFor(profile.total_km)
   await Promise.all([
-    d.insert(journeys).values({
-      flikkable_id: f.id,
-      event: 'flicked',
-      place,
-      lat: landing.lat,
-      lng: landing.lng,
-      distance_km: km,
-      stamps,
-      by_user_id: userId,
-      by_name: profile.display_name,
-    }),
+    d.insert(journeys).values({ flikkable_id: f.id, event: 'flicked', place, lat: landing.lat, lng: landing.lng, distance_km: km, stamps, by_user_id: userId, by_name: profile.display_name }),
     d
       .update(profiles)
-      .set({ stamps: profile.stamps + stamps, flick_count: profile.flick_count + 1 })
+      .set({
+        stamps: profile.stamps + stamps,
+        flick_count: profile.flick_count + 1,
+        total_km: userKm,
+        quests,
+        ...dq,
+        milestones: milestone ? [...profile.milestones, ...MILESTONES.filter((m) => userKm >= m && !profile.milestones.includes(m))] : profile.milestones,
+      })
       .where(eq(profiles.user_id, userId)),
   ])
+  const trophiesEarned = await saveTrophies(c, userId, earned)
   return c.json({
     flikkable: serialize(updated),
     landing: { place, city: city.name, country: city.country, lat: landing.lat, lng: landing.lng, from_lat: fromLat, from_lng: fromLng, km, stamps, population: city.population },
+    milestone,
+    level_up: levelFor(userKm) > levelBefore ? levelFor(userKm) : null,
+    trophies: trophiesEarned,
   })
+})
+
+gameRoutes.post('/game/flikkables/:id/pickup', async (c) => {
+  const userId = c.get('userId')
+  const profile = await requireProfile(c)
+  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
+  const body = await c.req.json<{ lat?: number; lng?: number }>()
+  if (typeof body.lat !== 'number' || typeof body.lng !== 'number') return c.json({ error: 'Location needed.' }, 400)
+  const d = db(c)
+  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
+  if (!f || f.status !== 'landed') return c.json({ error: 'Someone else got there first.' }, 409)
+  if (f.owner_id === userId) return c.json({ error: 'You can’t pikk up your own Flikkable.' }, 400)
+  const dist = haversineKm(body.lat, body.lng, f.current_lat, f.current_lng)
+  const { pickup_radius_m } = await loadSettings(c.env)
+  if (dist * 1000 > pickup_radius_m) {
+    return c.json({ error: `You’re ${Math.round(dist * 1000)} m away. Get within ${pickup_radius_m} m.` }, 400)
+  }
+  const pickers = f.pickers.includes(userId) ? f.pickers : [...f.pickers, userId]
+  const [updated] = await d
+    .update(flikkables)
+    .set({ status: 'picked_up', picked_up_by: userId, picked_up_by_name: profile.display_name, picked_up_at: new Date(), pickers })
+    .where(and(eq(flikkables.id, f.id), eq(flikkables.status, 'landed')))
+    .returning()
+  if (!updated) return c.json({ error: 'Someone else got there first.' }, 409)
+  const mine = f.rarity === 'legendary' ? progressQuest(profile.quests, 'rare_encounter', { add: 1 }) : { state: profile.quests, trophy: null }
+  await Promise.all([
+    d.insert(journeys).values({ flikkable_id: f.id, event: 'picked_up', place: f.current_place, lat: f.current_lat, lng: f.current_lng, by_user_id: userId, by_name: profile.display_name }),
+    d.update(profiles).set({ picked_up_count: profile.picked_up_count + 1, quests: mine.state }).where(eq(profiles.user_id, userId)),
+  ])
+  const [owner] = await d.select().from(profiles).where(eq(profiles.user_id, f.owner_id))
+  if (owner) {
+    const theirs = progressQuest(owner.quests, 'social_butterfly', { seen: userId })
+    await d.update(profiles).set({ quests: theirs.state }).where(eq(profiles.user_id, owner.user_id))
+    await saveTrophies(c, owner.user_id, [theirs.trophy])
+  }
+  const earned = await saveTrophies(c, userId, [mine.trophy])
+  return c.json({ flikkable: serialize(updated), trophies: earned })
+})
+
+gameRoutes.post('/game/flikkables/:id/return', async (c) => {
+  const userId = c.get('userId')
+  const profile = await requireProfile(c)
+  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
+  const d = db(c)
+  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
+  if (!f) return c.json({ error: 'That Flikkable is gone.' }, 404)
+  const isHolder = f.status === 'picked_up' && f.picked_up_by === userId
+  const isOwner = f.owner_id === userId
+  if (!isHolder && !isOwner) return c.json({ error: 'Only its owner or whoever is holding it can send it home.' }, 403)
+  if (f.status === 'home') return c.json({ error: `${f.name} is already home.` }, 400)
+  const readyAt = returnReadyAt(f)
+  const ownerWaiting = !isHolder && f.status === 'landed' && readyAt && readyAt.getTime() > Date.now()
+  if (ownerWaiting) {
+    const hours = Math.ceil((readyAt.getTime() - Date.now()) / 3600_000)
+    return c.json({ error: `${hours}h remaining before ${f.name} can return home.` }, 400)
+  }
+  const stamps = !isOwner ? Math.ceil(f.total_km / 200) + (RETURN_BONUS[f.rarity] ?? 0) : 0
+  const teamDrop = f.owner_id === SYSTEM_OWNER_ID
+  const [updated] = await d
+    .update(flikkables)
+    .set({
+      // Team drops have no owner to go home to, so they land back at their drop spot for the next player.
+      status: teamDrop ? 'landed' : 'home',
+      current_lat: f.home_lat,
+      current_lng: f.home_lng,
+      current_place: teamDrop ? (f.places[0] ?? 'Home') : 'Home',
+      times_returned: f.times_returned + 1,
+      picked_up_by: null,
+      picked_up_by_name: null,
+      picked_up_at: null,
+      happiness: 1,
+    })
+    .where(eq(flikkables.id, f.id))
+    .returning()
+  if (!updated) throw new Error('update failed')
+  const dq = dailyQuest(profile)
+  dq.dq_returned += 1
+  await Promise.all([
+    d.insert(journeys).values({ flikkable_id: f.id, event: 'returned', place: 'Home', lat: f.home_lat, lng: f.home_lng, stamps, by_user_id: userId, by_name: profile.display_name }),
+    d.update(profiles).set({ stamps: profile.stamps + stamps, returned_count: profile.returned_count + 1, ...dq }).where(eq(profiles.user_id, userId)),
+  ])
+  const [owner] = teamDrop ? [] : await d.select().from(profiles).where(eq(profiles.user_id, f.owner_id))
+  if (owner) {
+    const theirs = progressQuest(owner.quests, 'homecoming', { atLeast: f.times_returned + 1 })
+    await d.update(profiles).set({ quests: theirs.state }).where(eq(profiles.user_id, owner.user_id))
+    await saveTrophies(c, owner.user_id, [theirs.trophy])
+  }
+  return c.json({ flikkable: serialize(updated), stamps })
+})
+
+gameRoutes.get('/game/leaderboard', async (c) => {
+  const rows = await db(c)
+    .select({ user_id: profiles.user_id, display_name: profiles.display_name, stamps: profiles.stamps, flick_count: profiles.flick_count })
+    .from(profiles)
+    .orderBy(desc(profiles.stamps))
+    .limit(25)
+  return c.json({ leaders: rows })
 })
 
 gameRoutes.get('/game/nearby', async (c) => {
@@ -324,192 +553,6 @@ gameRoutes.get('/game/nearby', async (c) => {
   return c.json({ nearby, roaming, pickup_radius_km: settings.pickup_radius_m / 1000, radius_km: NEARBY_RADIUS_KM })
 })
 
-gameRoutes.post('/game/flikkables/:id/pickup', async (c) => {
-  const userId = c.get('userId')
-  const profile = await requireProfile(c)
-  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
-  const body = await c.req.json<{ lat?: number; lng?: number }>()
-  if (typeof body.lat !== 'number' || typeof body.lng !== 'number') return c.json({ error: 'Location needed.' }, 400)
-  const d = db(c)
-  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
-  if (!f || f.status !== 'landed') return c.json({ error: 'Someone else got there first.' }, 409)
-  if (f.owner_id === userId) return c.json({ error: 'You can’t pikk up your own Flikkable.' }, 400)
-  const dist = haversineKm(body.lat, body.lng, f.current_lat, f.current_lng)
-  const { pickup_radius_m } = await loadSettings(c.env)
-  if (dist * 1000 > pickup_radius_m) {
-    return c.json({ error: `You’re ${Math.round(dist * 1000)} m away. Get within ${pickup_radius_m} m.` }, 400)
-  }
-  const [updated] = await d
-    .update(flikkables)
-    .set({ status: 'picked_up', picked_up_by: userId, picked_up_by_name: profile.display_name, picked_up_at: new Date() })
-    .where(and(eq(flikkables.id, f.id), eq(flikkables.status, 'landed')))
-    .returning()
-  if (!updated) return c.json({ error: 'Someone else got there first.' }, 409)
-  await Promise.all([
-    d.insert(journeys).values({
-      flikkable_id: f.id,
-      event: 'picked_up',
-      place: f.current_place,
-      lat: f.current_lat,
-      lng: f.current_lng,
-      by_user_id: userId,
-      by_name: profile.display_name,
-    }),
-    d.update(profiles).set({ picked_up_count: profile.picked_up_count + 1 }).where(eq(profiles.user_id, userId)),
-  ])
-  return c.json({ flikkable: serialize(updated) })
-})
-
-gameRoutes.post('/game/flikkables/:id/return', async (c) => {
-  const userId = c.get('userId')
-  const profile = await requireProfile(c)
-  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
-  const d = db(c)
-  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
-  if (!f) return c.json({ error: 'That Flikkable is gone.' }, 404)
-  const isHolder = f.status === 'picked_up' && f.picked_up_by === userId
-  const isOwner = f.owner_id === userId
-  if (!isHolder && !isOwner) return c.json({ error: 'Only its owner or whoever is holding it can send it home.' }, 403)
-  if (f.status === 'home') return c.json({ error: `${f.name} is already home.` }, 400)
-  const readyAt = returnReadyAt(f)
-  const ownerWaiting = !isHolder && f.status === 'landed' && readyAt && readyAt.getTime() > Date.now()
-  if (ownerWaiting) {
-    const hours = Math.ceil((readyAt.getTime() - Date.now()) / 3600_000)
-    return c.json({ error: `${f.name} is still exploring. Back in about ${hours} h, or sooner if someone pikks it up.` }, 400)
-  }
-  const stamps = isHolder && !isOwner ? Math.ceil(f.total_km / 200) + (RETURN_BONUS[f.rarity] ?? 0) : 0
-  const [updated] = await d
-    .update(flikkables)
-    .set({
-      // Team drops have no owner to go home to, so they land back at their drop spot for the next player.
-      status: f.owner_id === SYSTEM_OWNER_ID ? 'landed' : 'home',
-      current_lat: f.home_lat,
-      current_lng: f.home_lng,
-      current_place: f.owner_id === SYSTEM_OWNER_ID ? (f.places[0] ?? 'Home') : 'Home',
-      times_returned: f.times_returned + 1,
-      picked_up_by: null,
-      picked_up_by_name: null,
-      picked_up_at: null,
-    })
-    .where(eq(flikkables.id, f.id))
-    .returning()
-  if (!updated) throw new Error('update failed')
-  const writes: Promise<unknown>[] = [
-    d.insert(journeys).values({
-      flikkable_id: f.id,
-      event: 'returned',
-      place: 'Home',
-      lat: f.home_lat,
-      lng: f.home_lng,
-      stamps,
-      by_user_id: userId,
-      by_name: profile.display_name,
-    }),
-  ]
-  if (stamps > 0) writes.push(d.update(profiles).set({ stamps: profile.stamps + stamps }).where(eq(profiles.user_id, userId)))
-  await Promise.all(writes)
-  return c.json({ flikkable: serialize(updated), stamps })
-})
-
-gameRoutes.post('/game/claim-daily', async (c) => {
-  const userId = c.get('userId')
-  const profile = await requireProfile(c)
-  if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
-  const today = todayKey()
-  if (profile.last_claim_day === today) return c.json({ error: 'Already claimed today. Come back tomorrow.' }, 400)
-  const streak = profile.last_claim_day === todayKey(-1) ? profile.streak + 1 : 1
-  const stamps = 5 + Math.min(streak, 7) * 2
-  const [updated] = await db(c)
-    .update(profiles)
-    .set({ streak, last_claim_day: today, stamps: profile.stamps + stamps })
-    .where(eq(profiles.user_id, userId))
-    .returning()
-  return c.json({ profile: updated, stamps })
-})
-
-gameRoutes.get('/game/leaderboard', async (c) => {
-  const rows = await db(c)
-    .select({ user_id: profiles.user_id, display_name: profiles.display_name, stamps: profiles.stamps, flick_count: profiles.flick_count })
-    .from(profiles)
-    .orderBy(desc(profiles.stamps))
-    .limit(25)
-  return c.json({ leaders: rows })
-})
-
-gameRoutes.get('/game/journal', async (c) => {
-  const userId = c.get('userId')
-  const rows = await db(c)
-    .select({
-      id: journeys.id,
-      event: journeys.event,
-      place: journeys.place,
-      distance_km: journeys.distance_km,
-      stamps: journeys.stamps,
-      created_at: journeys.created_at,
-      flikkable_id: journeys.flikkable_id,
-      name: flikkables.name,
-      emoji: flikkables.emoji,
-    })
-    .from(journeys)
-    .innerJoin(flikkables, eq(flikkables.id, journeys.flikkable_id))
-    .where(and(eq(journeys.by_user_id, userId), inArray(journeys.event, ['flicked', 'picked_up', 'returned'])))
-    .orderBy(desc(journeys.created_at))
-    .limit(40)
-  return c.json({ entries: rows })
-})
-
-gameRoutes.post('/game/flikkables/:id/postcard', async (c) => {
-  const userId = c.get('userId')
-  const d = db(c)
-  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, c.req.param('id')))
-  if (!f) return c.json({ error: 'That Flikkable is gone.' }, 404)
-  if (f.owner_id !== userId && f.picked_up_by !== userId) return c.json({ error: 'Only its owner can ask for postcards.' }, 403)
-  if (f.status === 'home' || f.current_place === 'Home') return c.json({ error: `${f.name} is home. Flikk it somewhere first.` }, 400)
-  const [already] = await d
-    .select()
-    .from(postcards)
-    .where(and(eq(postcards.flikkable_id, f.id), eq(postcards.place, f.current_place), ne(postcards.status, 'failed')))
-  if (already) return c.json({ postcard: already })
-  const prompt = `A high-quality travel postcard still in the style of a modern 3D animated family feature film. In the foreground, a small adorable round ${emojiNoun(f.emoji)} character named ${f.name}, with a big expressive face, large sparkling eyes, soft detailed fur or skin and a joyful open smile, poses like a delighted tourist taking a selfie. Behind it stands the most iconic landmark of ${f.current_place}, rendered as a lush, colorful animated-movie set. Cinematic warm lighting, soft depth of field, rich saturated colors, polished studio-quality character animation look, crisp and detailed. No text, no letters, no words, no logos.`
-  try {
-    const job = await newlyAi(c.env, userId).generate(
-      { model: 'image', prompt, width: 1024, height: 1024 },
-      `postcard-${f.id}-${f.places.length}-${f.total_km.toFixed(0)}`,
-    )
-    const [card] = await d
-      .insert(postcards)
-      .values({ flikkable_id: f.id, user_id: userId, place: f.current_place, job_id: job.id, status: job.status })
-      .returning()
-    return c.json({ postcard: card })
-  } catch (err) {
-    if (err instanceof NewlyAiError) return c.json({ error: 'Postcards are unavailable right now. Try again in a bit.' }, 503)
-    throw err
-  }
-})
-
-gameRoutes.get('/game/postcards/:id', async (c) => {
-  const userId = c.get('userId')
-  const d = db(c)
-  const [card] = await d.select().from(postcards).where(eq(postcards.id, c.req.param('id')))
-  if (!card) return c.json({ error: 'Postcard not found.' }, 404)
-  if (card.status === 'succeeded' || card.status === 'failed') return c.json({ postcard: card })
-  const job = await newlyAi(c.env, card.user_id).get(card.job_id)
-  const status = job.status === 'cancelled' ? 'failed' : job.status
-  const error = job.error === 'safety_flagged' ? 'This postcard couldn’t be drawn.' : job.error
-  const [updated] = await d.update(postcards).set({ status, error }).where(eq(postcards.id, card.id)).returning()
-  void userId
-  return c.json({ postcard: updated })
-})
-
-gameRoutes.get('/game/postcards/:id/image', async (c) => {
-  const d = db(c)
-  const [card] = await d.select().from(postcards).where(eq(postcards.id, c.req.param('id')))
-  if (!card || card.status !== 'succeeded') return c.json({ error: 'Not ready.' }, 404)
-  const res = await newlyAi(c.env, card.user_id).output(card.job_id)
-  return new Response(res.body, {
-    headers: { 'Content-Type': res.headers.get('Content-Type') ?? 'image/jpeg', 'Cache-Control': 'private, max-age=86400' },
-  })
-})
 
 gameRoutes.delete('/game/me', async (c) => {
   const userId = c.get('userId')
@@ -521,6 +564,8 @@ gameRoutes.delete('/game/me', async (c) => {
     await d.delete(postcards).where(inArray(postcards.flikkable_id, ids))
     await d.delete(flikkables).where(inArray(flikkables.id, ids))
   }
+  await d.delete(userItems).where(eq(userItems.user_id, userId))
+  await d.delete(trophies).where(eq(trophies.user_id, userId))
   await d
     .update(flikkables)
     .set({ status: 'landed', picked_up_by: null, picked_up_by_name: null, picked_up_at: null })
@@ -529,15 +574,3 @@ gameRoutes.delete('/game/me', async (c) => {
   return c.json({ ok: true })
 })
 
-const EMOJI_NOUNS: Record<string, string> = {
-  '🐶': 'puppy', '🐱': 'kitten', '🐭': 'mouse', '🐹': 'hamster', '🐰': 'bunny', '🦊': 'fox', '🐻': 'bear', '🐼': 'panda',
-  '🐨': 'koala', '🐯': 'tiger', '🦁': 'lion', '🐮': 'cow', '🐷': 'piglet', '🐸': 'frog', '🐵': 'monkey', '🐔': 'chicken',
-  '🐧': 'penguin', '🐦': 'bird', '🐤': 'chick', '🦆': 'duck', '🦅': 'eagle', '🦉': 'owl', '🦇': 'bat', '🐺': 'wolf',
-  '🐗': 'boar', '🐴': 'pony', '🦄': 'unicorn', '🐝': 'bee', '🐛': 'caterpillar', '🦋': 'butterfly', '🐌': 'snail', '🐞': 'ladybug',
-  '🐢': 'turtle', '🐍': 'snake', '🦎': 'lizard', '🦖': 't-rex', '🦕': 'long-necked dinosaur', '🐙': 'octopus', '🦑': 'squid', '🦐': 'shrimp',
-  '🦀': 'crab', '🐡': 'pufferfish', '🐠': 'tropical fish', '🐟': 'fish', '🐬': 'dolphin', '🐳': 'whale', '🐋': 'blue whale', '🦈': 'shark',
-}
-
-function emojiNoun(emoji: string) {
-  return EMOJI_NOUNS[emoji] ?? 'creature'
-}

@@ -32,6 +32,16 @@ export const durations = {
   flight: 1500,
   /** One beat of the wind trail fluttering behind a flying Flikkable. */
   flutter: 160,
+  /** The web garden: a resting Flikkable strolls to a new spot over six seconds. */
+  wander: 6000,
+  /** The web Daily Lucky Spin: four seconds, five turns. */
+  spin: 4000,
+  /** Feeding Time: a treat takes four seconds to fall. */
+  fall: 4000,
+  /** The web garden: a resting Flikkable sways side to side. */
+  sway: 1500,
+  /** The web airport: the ready-to-board dot pulses. */
+  pulse: 1000,
 } as const;
 
 export const easings = {

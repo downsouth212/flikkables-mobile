@@ -71,6 +71,13 @@ export function RootStack() {
       <Stack.Protected guard={ready}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="flikkable/[id]" />
+        <Stack.Screen name="place/[kind]" />
+        <Stack.Screen name="shop/[kind]" />
+        <Stack.Screen name="customize/[kind]" />
+        <Stack.Screen name="play/[id]" />
+        <Stack.Screen name="rewards" />
+        <Stack.Screen name="trophies" />
+        <Stack.Screen name="account" />
         <Stack.Protected guard={isAdmin}>
           <Stack.Screen name="admin" />
         </Stack.Protected>
