@@ -6,14 +6,19 @@ import { createDb } from '../db/client'
 import { flikkables, journeys, postcards, profiles, type FlikkableRow, type ProfileRow } from '../db/schema'
 import { CITIES, type City } from '../game-cities'
 import { newlyAi, NewlyAiError } from '../platform/ai'
+import { adminRole, loadSettings } from '../game-admin'
 
 export const gameRoutes = new Hono<HonoEnv>()
 gameRoutes.use('/game/*', authMiddleware)
+gameRoutes.use('/game/*', async (c, next) => {
+  if (c.req.method === 'GET' || c.req.path === '/game/me') return next()
+  const [p] = await db(c).select({ locked: profiles.locked }).from(profiles).where(eq(profiles.user_id, c.get('userId')))
+  if (p?.locked) return c.json({ error: 'This account is paused by the Flikkables team.' }, 403)
+  return next()
+})
 
-const PICKUP_RADIUS_KM = 0.05
-const NEARBY_RADIUS_KM = 25
 const RETURN_WAIT_HOURS = 8
-const MAX_OWNED = 12
+export const SYSTEM_OWNER_ID = 'flikkables-team'
 const STARTER_EMOJIS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🐢', '🦄', '🐧', '🦋', '🐨']
 const RARITY_BONUS: Record<string, number> = { common: 0, uncommon: 0, rare: 2, epic: 5, legendary: 10 }
 const RETURN_BONUS: Record<string, number> = { common: 0, uncommon: 0, rare: 5, epic: 10, legendary: 20 }
@@ -22,7 +27,7 @@ function db(c: { env: HonoEnv['Bindings'] }) {
   return createDb(c.env.DATABASE_URL)
 }
 
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const r = 6371
   const dLat = ((lat2 - lat1) * Math.PI) / 180
   const dLng = ((lng2 - lng1) * Math.PI) / 180
@@ -41,7 +46,7 @@ function bearingDeg(lat1: number, lng1: number, lat2: number, lng2: number) {
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
 }
 
-function offset(lat: number, lng: number, km: number) {
+export function offset(lat: number, lng: number, km: number) {
   const angle = Math.random() * Math.PI * 2
   const nLat = lat + (km / 111) * Math.cos(angle)
   const nLng = lng + (km / (111 * Math.cos((nLat * Math.PI) / 180))) * Math.sin(angle)
@@ -59,7 +64,7 @@ function pickCity(excludeName?: string): City {
   return pool[pool.length - 1]!
 }
 
-function rollRarity() {
+export function rollRarity() {
   const roll = Math.random() * 100
   if (roll < 2) return 'legendary'
   if (roll < 10) return 'epic'
@@ -96,7 +101,10 @@ gameRoutes.get('/game/state', async (c) => {
   const userId = c.get('userId')
   const d = db(c)
   const [profile] = await d.select().from(profiles).where(eq(profiles.user_id, userId))
-  if (!profile) return c.json({ profile: null, mine: [], holding: [] })
+  const role = await adminRole(c)
+  if (!profile) return c.json({ profile: null, mine: [], holding: [], role })
+  const email = c.get('email')?.toLowerCase() ?? null
+  if (email && profile.email !== email) await d.update(profiles).set({ email }).where(eq(profiles.user_id, userId))
   const rows = await d
     .select()
     .from(flikkables)
@@ -106,6 +114,7 @@ gameRoutes.get('/game/state', async (c) => {
     profile,
     mine: rows.filter((r) => r.owner_id === userId).map(serialize),
     holding: rows.filter((r) => r.owner_id !== userId).map(serialize),
+    role,
   })
 })
 
@@ -130,7 +139,14 @@ gameRoutes.post('/game/profile', async (c) => {
   }
   const [profile] = await d
     .insert(profiles)
-    .values({ user_id: userId, display_name: name, home_lat: body.home_lat, home_lng: body.home_lng, home_name: homeName })
+    .values({
+      user_id: userId,
+      display_name: name,
+      home_lat: body.home_lat,
+      home_lng: body.home_lng,
+      home_name: homeName,
+      email: c.get('email')?.toLowerCase() ?? null,
+    })
     .returning()
   const emoji = STARTER_EMOJIS[Math.floor(Math.random() * STARTER_EMOJIS.length)]!
   const [starter] = await d
@@ -172,7 +188,8 @@ gameRoutes.post('/game/flikkables', async (c) => {
   if (!emoji) return c.json({ error: 'Pick a creature.' }, 400)
   const d = db(c)
   const owned = await d.select({ id: flikkables.id }).from(flikkables).where(eq(flikkables.owner_id, userId))
-  if (owned.length >= MAX_OWNED) return c.json({ error: `You can keep up to ${MAX_OWNED} Flikkables.` }, 400)
+  const { max_owned } = await loadSettings(c.env)
+  if (owned.length >= max_owned) return c.json({ error: `You can keep up to ${max_owned} Flikkables.` }, 400)
   const [created] = await d
     .insert(flikkables)
     .values({
@@ -281,6 +298,8 @@ gameRoutes.get('/game/nearby', async (c) => {
   const lng = Number(c.req.query('lng'))
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return c.json({ error: 'Location needed.' }, 400)
   const d = db(c)
+  const settings = await loadSettings(c.env)
+  const NEARBY_RADIUS_KM = settings.nearby_radius_km
   const latSpan = NEARBY_RADIUS_KM / 111
   const landed = await d
     .select()
@@ -302,7 +321,7 @@ gameRoutes.get('/game/nearby', async (c) => {
     .where(eq(flikkables.status, 'landed'))
     .orderBy(desc(flikkables.last_flicked_at))
     .limit(200)
-  return c.json({ nearby, roaming, pickup_radius_km: PICKUP_RADIUS_KM, radius_km: NEARBY_RADIUS_KM })
+  return c.json({ nearby, roaming, pickup_radius_km: settings.pickup_radius_m / 1000, radius_km: NEARBY_RADIUS_KM })
 })
 
 gameRoutes.post('/game/flikkables/:id/pickup', async (c) => {
@@ -316,8 +335,9 @@ gameRoutes.post('/game/flikkables/:id/pickup', async (c) => {
   if (!f || f.status !== 'landed') return c.json({ error: 'Someone else got there first.' }, 409)
   if (f.owner_id === userId) return c.json({ error: 'You can’t pick up your own Flikkable.' }, 400)
   const dist = haversineKm(body.lat, body.lng, f.current_lat, f.current_lng)
-  if (dist > PICKUP_RADIUS_KM) {
-    return c.json({ error: `You’re ${Math.round(dist * 1000)} m away. Get within ${PICKUP_RADIUS_KM * 1000} m.` }, 400)
+  const { pickup_radius_m } = await loadSettings(c.env)
+  if (dist * 1000 > pickup_radius_m) {
+    return c.json({ error: `You’re ${Math.round(dist * 1000)} m away. Get within ${pickup_radius_m} m.` }, 400)
   }
   const [updated] = await d
     .update(flikkables)
@@ -361,10 +381,11 @@ gameRoutes.post('/game/flikkables/:id/return', async (c) => {
   const [updated] = await d
     .update(flikkables)
     .set({
-      status: 'home',
+      // Team drops have no owner to go home to, so they land back at their drop spot for the next player.
+      status: f.owner_id === SYSTEM_OWNER_ID ? 'landed' : 'home',
       current_lat: f.home_lat,
       current_lng: f.home_lng,
-      current_place: 'Home',
+      current_place: f.owner_id === SYSTEM_OWNER_ID ? (f.places[0] ?? 'Home') : 'Home',
       times_returned: f.times_returned + 1,
       picked_up_by: null,
       picked_up_by_name: null,

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { zustandStorage } from '@/lib/storage';
-import type { Flikkable, Landing, Profile } from '@/features/game/types/game';
+import type { AdminRole, Flikkable, Landing, Profile } from '@/features/game/types/game';
 import { gameApi } from '@/features/game/utils/game-api';
 
 export type LandingOrigin = 'launch' | 'explore';
@@ -10,6 +10,7 @@ export type LandingOrigin = 'launch' | 'explore';
 interface GameStore {
   userID: string | null;
   profile: Profile | null;
+  role: AdminRole | null;
   mine: Flikkable[];
   holding: Flikkable[];
   loaded: boolean;
@@ -33,6 +34,7 @@ export const useGameStore = create<GameStore>()(
     (set, get) => ({
       userID: null,
       profile: null,
+      role: null,
       mine: [],
       holding: [],
       loaded: false,
@@ -40,12 +42,12 @@ export const useGameStore = create<GameStore>()(
       lastLanding: null,
       refresh: async (userID) => {
         if (get().userID !== userID) {
-          set({ userID, profile: null, mine: [], holding: [], loaded: false, selectedID: null });
+          set({ userID, profile: null, role: null, mine: [], holding: [], loaded: false, selectedID: null });
         }
         const state = await gameApi.state();
-        set({ profile: state.profile, mine: state.mine, holding: state.holding, loaded: true });
+        set({ profile: state.profile, role: state.role ?? null, mine: state.mine, holding: state.holding, loaded: true });
       },
-      reset: () => set({ userID: null, profile: null, mine: [], holding: [], loaded: false, selectedID: null, lastLanding: null }),
+      reset: () => set({ userID: null, profile: null, role: null, mine: [], holding: [], loaded: false, selectedID: null, lastLanding: null }),
       select: (id) => set({ selectedID: id }),
       setProfile: (profile) => set({ profile }),
       upsert: (f) => {
@@ -78,7 +80,7 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'flikkables-game',
       storage: createJSONStorage(() => zustandStorage),
-      partialize: (s) => ({ userID: s.userID, profile: s.profile, mine: s.mine, holding: s.holding, loaded: s.loaded, selectedID: s.selectedID }),
+      partialize: (s) => ({ userID: s.userID, profile: s.profile, role: s.role, mine: s.mine, holding: s.holding, loaded: s.loaded, selectedID: s.selectedID }),
     },
   ),
 );

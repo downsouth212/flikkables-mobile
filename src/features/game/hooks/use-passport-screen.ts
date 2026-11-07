@@ -19,6 +19,7 @@ export function usePassportScreen() {
   const profile = useGameStore((s) => s.profile);
   const setProfile = useGameStore((s) => s.setProfile);
   const mine = useGameStore((s) => s.mine);
+  const role = useGameStore((s) => s.role);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [claiming, setClaiming] = useState(false);
@@ -98,6 +99,8 @@ export function usePassportScreen() {
     cities,
     signOut: () => void signOut(),
     deleteAccount,
+    role,
+    openAdmin: () => router.push('/admin'),
     open: (id: string) => router.push({ pathname: '/flikkable/[id]', params: { id } }),
   };
 }

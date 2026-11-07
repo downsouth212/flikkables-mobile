@@ -144,6 +144,9 @@ export default function PassportScreen() {
       <Section title="Account">
         <Card list>
           <ListRow title={s.user?.email ?? ""} subtitle="Signed in" />
+          {s.role ? (
+            <ListRow title="Admin panel" subtitle={s.role === 'master' ? 'Master admin' : 'Admin'} onPress={s.openAdmin} />
+          ) : null}
           <ListRow title="Sign out" onPress={s.signOut} />
           <ListRow title="Delete account" onPress={s.deleteAccount} />
         </Card>

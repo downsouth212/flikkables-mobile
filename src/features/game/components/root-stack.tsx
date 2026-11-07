@@ -13,6 +13,7 @@ export function RootStack() {
   const profile = useGameStore((s) => s.profile);
   const loaded = useGameStore((s) => s.loaded);
   const storeUser = useGameStore((s) => s.userID);
+  const isAdmin = useGameStore((s) => s.role !== null);
   const refresh = useGameStore((s) => s.refresh);
   const reset = useGameStore((s) => s.reset);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,9 @@ export function RootStack() {
       <Stack.Protected guard={ready}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="flikkable/[id]" />
+        <Stack.Protected guard={isAdmin}>
+          <Stack.Screen name="admin" />
+        </Stack.Protected>
         <Stack.Screen
           name="create"
           options={{ presentation: 'formSheet', sheetAllowedDetents: [1], sheetGrabberVisible: true }}

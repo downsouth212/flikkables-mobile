@@ -44,6 +44,7 @@ export default function SignInScreen() {
       className="flex-1 bg-background"
       contentContainerClassName="px-5 pt-safe-offset-2 pb-safe-offset-4 gap-6"
       keyboardShouldPersistTaps="handled"
+      bottomOffset={96}
     >
       <View className="items-center gap-4 pt-10">
         <View className="flex-row gap-3">
@@ -91,7 +92,7 @@ export default function SignInScreen() {
             placeholder="At least 8 characters"
             secureTextEntry
             autoComplete={creating ? 'new-password' : 'current-password'}
-          />
+          returnKeyType="go" onSubmitEditing={() => void submit()} />
           <FieldError>{error ?? ''}</FieldError>
         </TextField>
       </View>

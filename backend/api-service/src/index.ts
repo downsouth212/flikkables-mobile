@@ -11,6 +11,7 @@ import type { MessageBatch } from '@cloudflare/workers-types'
 import { healthRoutes } from './routes/health'
 import { meRoutes } from './routes/me'
 import { gameRoutes } from './routes/game'
+import { adminRoutes } from './routes/admin'
 import { internalCronManifestRoutes } from './routes/internal/cron-manifest'
 import { internalCronDispatchRoutes } from './routes/internal/cron-dispatch'
 import { taskDispatchRoutes } from './routes/internal/task-dispatch'
@@ -23,6 +24,7 @@ app.onError(errorHandler)
 app.route('/', healthRoutes)
 app.route('/', meRoutes)
 app.route('/', gameRoutes)
+app.route('/', adminRoutes)
 app.route('/', internalCronManifestRoutes)
 app.route('/', internalCronDispatchRoutes)
 app.route('/', taskDispatchRoutes)

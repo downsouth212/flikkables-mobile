@@ -1,4 +1,4 @@
-import { pgSchema, text, integer, timestamp, jsonb, index, doublePrecision, uuid } from 'drizzle-orm/pg-core';
+import { pgSchema, text, integer, timestamp, jsonb, index, doublePrecision, uuid, boolean } from 'drizzle-orm/pg-core';
 
 // api-service tables live in their own Postgres schema so the auth-service
 // (which shares the tenant Neon DB) can migrate without touching api
@@ -49,6 +49,8 @@ export const profiles = apiSchema.table('profiles', {
   flick_count: integer('flick_count').notNull().default(0),
   streak: integer('streak').notNull().default(0),
   last_claim_day: text('last_claim_day'),
+  email: text('email'),
+  locked: boolean('locked').notNull().default(false),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -128,3 +130,19 @@ export const postcards = apiSchema.table(
 );
 
 export type PostcardRow = typeof postcards.$inferSelect;
+
+export const admins = apiSchema.table('admins', {
+  email: text('email').primaryKey(),
+  user_id: text('user_id').unique(),
+  role: text('role').notNull().default('admin'),
+  granted_by: text('granted_by'),
+  created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type AdminRow = typeof admins.$inferSelect;
+
+export const gameSettings = apiSchema.table('game_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

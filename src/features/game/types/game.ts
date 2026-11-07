@@ -80,10 +80,13 @@ export interface Landing {
   population: number;
 }
 
+export type AdminRole = 'master' | 'admin';
+
 export interface GameState {
   profile: Profile | null;
   mine: Flikkable[];
   holding: Flikkable[];
+  role: AdminRole | null;
 }
 
 export interface JournalEntry {

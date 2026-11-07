@@ -15,6 +15,20 @@
       "when": 1794046656876,
       "tag": "0001_glossy_nocturne",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794052469844,
+      "tag": "0002_normal_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794052470461,
+      "tag": "0003_seed_master_admin",
+      "breakpoints": true
     }
   ]
 }
