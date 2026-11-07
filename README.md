@@ -1,44 +1,38 @@
-**Welcome to your Base44 project** 
+# Newly app
 
-**About**
+A native-feeling Expo (React Native) app built with the newly design system:
+**HeroUI Native** components, **Uniwind** (Tailwind v4) styling, a locked **design
+token** set, and **Zustand + MMKV** for local-first state.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Get started
 
-This project contains everything you need to run your app locally.
-
-**Edit the code in your local development environment**
-
-Any change pushed to the repo will also be reflected in the Base44 Builder.
-
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+```bash
+bun install
+bun run ios       # or: bun run android / bun run web
 ```
 
-Run the app: `npm run dev`
+## Where things live
 
-**Publish your changes**
+```
+src/
+├── app/              Expo Router routes — every .tsx here is a screen
+├── components/       Scaffold primitives (Section, Card, ListRow, Segmented, …)
+├── features/<f>/     Domain modules: components/ hooks/ store/ utils/ types/
+├── hooks/            Cross-feature hooks
+├── lib/              motion.ts · confirm.ts · storage.ts · cn.ts
+└── constants/        theme.ts (native fallback palette)
+design/               DESIGN.md + dials.json — the locked visual identity
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+The app's look is driven by the tokens in `src/global.css` and the dials in
+`design/dials.json` — change the look by editing tokens, never one screen at a time.
 
-**Docs & Support**
+## Checks
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+```bash
+bun run typecheck     # TypeScript
+bun run lint:slop     # design-system lint (tokens only, primitives, motion rules)
+```
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
-
-
----
-
-[![Restore to base44](https://img.shields.io/badge/Restore%20to-BASE44-orange?style=for-the-badge&logo=rocket)](https://app.base44.com/apps)
+Newly's agent brings its own coding rules. Add notes of your own for it in `AGENTS.md`,
+below the Newly note.
