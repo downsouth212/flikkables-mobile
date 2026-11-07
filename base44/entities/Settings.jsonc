@@ -1,0 +1,22 @@
+{
+  "name": "Settings",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Key for the setting (e.g., pickup_radius)"
+    },
+    "setting_value": {
+      "type": "string",
+      "description": "Value for the setting (stored as string for flexibility)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what this setting does"
+    }
+  },
+  "required": [
+    "setting_key",
+    "setting_value"
+  ]
+}

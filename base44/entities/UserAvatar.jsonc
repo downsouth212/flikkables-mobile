@@ -1,0 +1,41 @@
+{
+  "name": "UserAvatar",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Avatar name/title"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "URL to avatar image"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "preset",
+        "custom"
+      ],
+      "default": "preset",
+      "description": "Whether this is a preset avatar or custom"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "neutral"
+      ],
+      "description": "Gender category for preset avatars"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a default preset avatar available to all"
+    }
+  },
+  "required": [
+    "name",
+    "avatar_url"
+  ]
+}

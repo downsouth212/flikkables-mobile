@@ -1,0 +1,64 @@
+{
+  "name": "TradeOffer",
+  "type": "object",
+  "properties": {
+    "from_user_email": {
+      "type": "string"
+    },
+    "from_user_name": {
+      "type": "string"
+    },
+    "to_user_email": {
+      "type": "string"
+    },
+    "to_user_name": {
+      "type": "string"
+    },
+    "offered_flikkable_id": {
+      "type": "string"
+    },
+    "offered_flikkable_name": {
+      "type": "string"
+    },
+    "offered_flikkable_emoji": {
+      "type": "string"
+    },
+    "offered_flikkable_avatar_url": {
+      "type": "string"
+    },
+    "offered_flikkable_rarity": {
+      "type": "string"
+    },
+    "requested_flikkable_id": {
+      "type": "string"
+    },
+    "requested_flikkable_name": {
+      "type": "string"
+    },
+    "requested_flikkable_emoji": {
+      "type": "string"
+    },
+    "requested_flikkable_avatar_url": {
+      "type": "string"
+    },
+    "requested_flikkable_rarity": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "from_user_email",
+    "to_user_email",
+    "offered_flikkable_id",
+    "requested_flikkable_id"
+  ]
+}

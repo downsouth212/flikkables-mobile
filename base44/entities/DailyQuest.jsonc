@@ -1,0 +1,38 @@
+{
+  "name": "DailyQuest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "quest_date": {
+      "type": "string",
+      "description": "Date for this quest (YYYY-MM-DD)"
+    },
+    "flikkables_flicked": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of flikkables flicked today"
+    },
+    "flikkables_returned": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of flikkables returned today"
+    },
+    "flikk_quest_claimed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether flikk quest reward was claimed"
+    },
+    "return_quest_claimed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether return quest reward was claimed"
+    }
+  },
+  "required": [
+    "user_email",
+    "quest_date"
+  ]
+}

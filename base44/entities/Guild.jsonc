@@ -1,0 +1,102 @@
+{
+  "name": "Guild",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Guild name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Guild description"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Guild emoji/icon"
+    },
+    "leader_email": {
+      "type": "string",
+      "description": "Email of guild leader"
+    },
+    "leader_name": {
+      "type": "string",
+      "description": "Name of guild leader"
+    },
+    "total_distance": {
+      "type": "number",
+      "default": 0,
+      "description": "Total distance traveled by all members"
+    },
+    "total_flicks": {
+      "type": "number",
+      "default": 0,
+      "description": "Total flicks by all members"
+    },
+    "total_stamps": {
+      "type": "number",
+      "default": 0,
+      "description": "Total stamps earned by all members"
+    },
+    "level": {
+      "type": "number",
+      "default": 1,
+      "description": "Guild level"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 1,
+      "description": "Number of members"
+    },
+    "max_members": {
+      "type": "number",
+      "default": 20,
+      "description": "Maximum members allowed"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether guild is public or invite-only"
+    },
+    "join_requirement_stamps": {
+      "type": "number",
+      "default": 0,
+      "description": "Minimum stamps required to join"
+    },
+    "joining_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "One-time stamp fee to join the guild"
+    },
+    "daily_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "Daily stamp fee for membership"
+    },
+    "treasury": {
+      "type": "number",
+      "default": 0,
+      "description": "Guild's shared stamp pool"
+    },
+    "territories": {
+      "type": "string",
+      "description": "JSON string of claimed territories"
+    },
+    "alliances": {
+      "type": "string",
+      "description": "JSON array of allied guild IDs"
+    },
+    "voice_channel_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether voice chat is enabled"
+    },
+    "perks": {
+      "type": "string",
+      "description": "JSON array of unlocked perks"
+    }
+  },
+  "required": [
+    "name",
+    "leader_email"
+  ]
+}

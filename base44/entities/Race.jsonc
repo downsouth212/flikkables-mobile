@@ -1,0 +1,72 @@
+{
+  "name": "Race",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "ID of the character being raced for"
+    },
+    "character_name": {
+      "type": "string",
+      "description": "Name of the character"
+    },
+    "host_email": {
+      "type": "string",
+      "description": "Email of the user hosting the race"
+    },
+    "host_name": {
+      "type": "string",
+      "description": "Display name of the host"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the race starts"
+    },
+    "finish_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the race ends"
+    },
+    "max_participants": {
+      "type": "number",
+      "description": "Maximum number of participants (0 for unlimited)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Current status of the race"
+    },
+    "winner_email": {
+      "type": "string",
+      "description": "Email of the winner who picked up first"
+    },
+    "winner_name": {
+      "type": "string",
+      "description": "Display name of the winner"
+    },
+    "participants": {
+      "type": "string",
+      "description": "JSON array of participant emails"
+    },
+    "stamp_entries": {
+      "type": "string",
+      "description": "JSON array of emails of participants who paid entry fee"
+    },
+    "entry_fee": {
+      "type": "number",
+      "default": 5,
+      "description": "Stamps required to enter the race"
+    }
+  },
+  "required": [
+    "character_id",
+    "host_email",
+    "start_time"
+  ]
+}

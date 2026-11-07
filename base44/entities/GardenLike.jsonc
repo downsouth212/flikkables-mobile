@@ -1,0 +1,26 @@
+{
+  "name": "GardenLike",
+  "type": "object",
+  "properties": {
+    "garden_owner_email": {
+      "type": "string",
+      "description": "Email of the garden owner"
+    },
+    "garden_owner_name": {
+      "type": "string",
+      "description": "Name of the garden owner"
+    },
+    "liker_email": {
+      "type": "string",
+      "description": "Email of the user who liked"
+    },
+    "liker_name": {
+      "type": "string",
+      "description": "Name of the user who liked"
+    }
+  },
+  "required": [
+    "garden_owner_email",
+    "liker_email"
+  ]
+}

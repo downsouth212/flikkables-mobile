@@ -1,0 +1,52 @@
+{
+  "name": "GuildGoal",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "ID of the guild"
+    },
+    "title": {
+      "type": "string",
+      "description": "Goal title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Goal description"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "distance",
+        "flicks",
+        "stamps",
+        "members"
+      ],
+      "description": "Type of goal"
+    },
+    "target": {
+      "type": "number",
+      "description": "Target value to achieve"
+    },
+    "current": {
+      "type": "number",
+      "default": 0,
+      "description": "Current progress"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether goal is completed"
+    },
+    "reward_description": {
+      "type": "string",
+      "description": "Description of reward"
+    }
+  },
+  "required": [
+    "guild_id",
+    "title",
+    "goal_type",
+    "target"
+  ]
+}

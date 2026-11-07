@@ -1,0 +1,97 @@
+{
+  "name": "Battle",
+  "type": "object",
+  "properties": {
+    "battle_type": {
+      "type": "string",
+      "enum": [
+        "flick_duel",
+        "pickup_race",
+        "timed_challenge",
+        "head_to_head",
+        "distance_derby",
+        "location_chain",
+        "survival_sprint",
+        "landmark_hunt"
+      ],
+      "description": "Type of battle"
+    },
+    "initiator_email": {
+      "type": "string",
+      "description": "Email of player who started the battle"
+    },
+    "initiator_name": {
+      "type": "string",
+      "description": "Display name of initiator"
+    },
+    "opponent_email": {
+      "type": "string",
+      "description": "Email of opponent (or 'AI' for AI battles)"
+    },
+    "opponent_name": {
+      "type": "string",
+      "description": "Display name of opponent (or AI difficulty)"
+    },
+    "initiator_character_id": {
+      "type": "string",
+      "description": "Character ID used by initiator"
+    },
+    "opponent_character_id": {
+      "type": "string",
+      "description": "Character ID used by opponent"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Battle status"
+    },
+    "winner_email": {
+      "type": "string",
+      "description": "Email of winner"
+    },
+    "stakes": {
+      "type": "number",
+      "default": 10,
+      "description": "Stamps wagered"
+    },
+    "battle_data": {
+      "type": "string",
+      "description": "JSON string with battle-specific data (destination, timer, results, etc)"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When opponent accepted"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When battle completed"
+    },
+    "is_ai": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether opponent is AI"
+    },
+    "ai_difficulty": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "medium",
+        "hard"
+      ],
+      "description": "AI difficulty level"
+    }
+  },
+  "required": [
+    "battle_type",
+    "initiator_email",
+    "opponent_email",
+    "initiator_character_id"
+  ]
+}

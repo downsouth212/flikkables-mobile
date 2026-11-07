@@ -1,0 +1,39 @@
+{
+  "name": "CharacterMood",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "ID of the character"
+    },
+    "character_name": {
+      "type": "string",
+      "description": "Name of the character"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the character owner"
+    },
+    "happiness_level": {
+      "type": "number",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default": 5,
+      "description": "Happiness level from 1 (lowest) to 5 (highest)"
+    },
+    "last_fed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the character was last fed"
+    }
+  },
+  "required": [
+    "character_id",
+    "owner_email"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "UnlockedTemplate",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who unlocked the template"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "ID of the FlikkableTemplate that was unlocked"
+    },
+    "template_name": {
+      "type": "string",
+      "description": "Name of the template"
+    },
+    "stamp_cost": {
+      "type": "number",
+      "description": "How many stamps were spent to unlock"
+    }
+  },
+  "required": [
+    "user_email",
+    "template_id"
+  ]
+}

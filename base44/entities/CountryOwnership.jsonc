@@ -1,0 +1,55 @@
+{
+  "name": "CountryOwnership",
+  "type": "object",
+  "properties": {
+    "country_name": {
+      "type": "string",
+      "description": "Name of the country"
+    },
+    "country_code": {
+      "type": "string",
+      "description": "ISO country code (e.g., US, AU, JP)"
+    },
+    "owner_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "guild"
+      ],
+      "description": "Whether owned by individual or guild"
+    },
+    "owner_id": {
+      "type": "string",
+      "description": "Email of user or ID of guild that owns this country"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Display name of owner"
+    },
+    "flikkable_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of flikkables in this country by owner"
+    },
+    "claimed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When ownership was claimed"
+    },
+    "total_flikkables_in_country": {
+      "type": "number",
+      "default": 0,
+      "description": "Total flikkables currently in this country"
+    },
+    "benefits_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total stamps earned from ownership"
+    }
+  },
+  "required": [
+    "country_name",
+    "owner_type",
+    "owner_id"
+  ]
+}

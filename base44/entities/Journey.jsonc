@@ -1,0 +1,55 @@
+{
+  "name": "Journey",
+  "type": "object",
+  "properties": {
+    "character_id": {
+      "type": "string",
+      "description": "ID of the Character"
+    },
+    "character_name": {
+      "type": "string",
+      "description": "Name of the Character"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "flicked",
+        "landed",
+        "picked_up",
+        "returned"
+      ],
+      "description": "Type of journey event"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "location_name": {
+      "type": "string"
+    },
+    "by_user_email": {
+      "type": "string",
+      "description": "User who performed this action"
+    },
+    "by_user_name": {
+      "type": "string"
+    },
+    "by_user_display_name": {
+      "type": "string"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Distance traveled in this leg"
+    },
+    "points_earned": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "character_id",
+    "event_type"
+  ]
+}

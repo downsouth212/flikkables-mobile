@@ -1,0 +1,46 @@
+{
+  "name": "GuildShopItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Item name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Item description"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Item emoji/icon"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "decoration",
+        "boost",
+        "theme",
+        "badge"
+      ],
+      "description": "Item category"
+    },
+    "treasury_cost": {
+      "type": "number",
+      "description": "Cost in guild treasury stamps"
+    },
+    "level_requirement": {
+      "type": "number",
+      "default": 1,
+      "description": "Minimum guild level to purchase"
+    },
+    "effect": {
+      "type": "string",
+      "description": "JSON string describing the item effect"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "treasury_cost"
+  ]
+}

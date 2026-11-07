@@ -1,0 +1,49 @@
+{
+  "name": "Quest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "quest_id": {
+      "type": "string",
+      "enum": [
+        "world_traveler",
+        "distance_champion",
+        "homecoming",
+        "social_butterfly",
+        "trade_master",
+        "rarity_collector",
+        "continental_tour",
+        "lucky_landing",
+        "speed_flicker",
+        "rare_encounter"
+      ],
+      "description": "Unique quest identifier"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Current progress towards quest completion"
+    },
+    "target": {
+      "type": "number",
+      "description": "Target value for quest completion"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether quest is completed"
+    },
+    "trophy_claimed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether trophy has been claimed"
+    }
+  },
+  "required": [
+    "user_email",
+    "quest_id"
+  ]
+}

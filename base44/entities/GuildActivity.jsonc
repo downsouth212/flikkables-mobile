@@ -1,0 +1,43 @@
+{
+  "name": "GuildActivity",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "ID of the guild"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User who performed the activity"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of user"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "flick",
+        "return",
+        "achievement",
+        "donation",
+        "member_joined",
+        "level_up"
+      ],
+      "description": "Type of activity"
+    },
+    "description": {
+      "type": "string",
+      "description": "Activity description"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON string with additional data"
+    }
+  },
+  "required": [
+    "guild_id",
+    "activity_type",
+    "description"
+  ]
+}

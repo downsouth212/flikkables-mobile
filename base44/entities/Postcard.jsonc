@@ -1,0 +1,57 @@
+{
+  "name": "Postcard",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who took the postcard"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the user"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "ID of the character in the postcard"
+    },
+    "character_name": {
+      "type": "string",
+      "description": "Name of the character"
+    },
+    "character_avatar_url": {
+      "type": "string",
+      "description": "Avatar URL of the character"
+    },
+    "postcard_image_url": {
+      "type": "string",
+      "description": "URL to the postcard image"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Location where postcard was taken"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude where postcard was taken"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude where postcard was taken"
+    },
+    "sent_to_owner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this postcard was sent with return"
+    },
+    "return_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the character was returned with this postcard"
+    }
+  },
+  "required": [
+    "user_email",
+    "character_id",
+    "postcard_image_url"
+  ]
+}

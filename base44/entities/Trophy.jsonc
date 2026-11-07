@@ -1,0 +1,53 @@
+{
+  "name": "Trophy",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who owns the trophy"
+    },
+    "quest_id": {
+      "type": "string",
+      "description": "Associated quest ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Trophy name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Trophy description"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Trophy emoji or icon"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common",
+      "description": "Trophy rarity"
+    },
+    "stamps_value": {
+      "type": "number",
+      "default": 100,
+      "description": "Passport stamps awarded when exchanged"
+    },
+    "exchanged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether trophy has been exchanged for stamps"
+    }
+  },
+  "required": [
+    "user_email",
+    "quest_id",
+    "name"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "DailyStreak",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "current_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Current consecutive days logged in"
+    },
+    "longest_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Longest streak ever achieved"
+    },
+    "last_login_date": {
+      "type": "string",
+      "description": "Last date user logged in (YYYY-MM-DD)"
+    },
+    "total_logins": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of logins"
+    },
+    "last_reward_claimed": {
+      "type": "string",
+      "description": "Date of last reward claim"
+    },
+    "streak_cycle": {
+      "type": "number",
+      "default": 0,
+      "description": "Current day in 7-day cycle (1-7)"
+    },
+    "thirty_day_milestones": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of 30-day streaks achieved"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

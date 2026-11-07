@@ -1,0 +1,36 @@
+{
+  "name": "Friend",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who sent the friend request"
+    },
+    "user_display_name": {
+      "type": "string",
+      "description": "Display name of the user who sent the request"
+    },
+    "friend_email": {
+      "type": "string",
+      "description": "Email of the friend being added"
+    },
+    "friend_display_name": {
+      "type": "string",
+      "description": "Display name of the friend"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "blocked"
+      ],
+      "default": "pending",
+      "description": "Current status of the friendship"
+    }
+  },
+  "required": [
+    "user_email",
+    "friend_email"
+  ]
+}

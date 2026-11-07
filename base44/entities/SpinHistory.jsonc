@@ -1,0 +1,36 @@
+{
+  "name": "SpinHistory",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "spin_date": {
+      "type": "string",
+      "description": "Date of spin (YYYY-MM-DD)"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "stamps",
+        "garden_feature",
+        "flikkstar_unlock"
+      ],
+      "description": "Type of reward won"
+    },
+    "reward_value": {
+      "type": "string",
+      "description": "Specific reward (stamps amount, decoration ID, or template ID)"
+    },
+    "reward_description": {
+      "type": "string",
+      "description": "Human-readable reward description"
+    }
+  },
+  "required": [
+    "user_email",
+    "spin_date",
+    "reward_type"
+  ]
+}

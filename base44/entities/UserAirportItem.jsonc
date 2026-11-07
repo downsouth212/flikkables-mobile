@@ -1,0 +1,39 @@
+{
+  "name": "UserAirportItem",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "decoration_id": {
+      "type": "string",
+      "description": "ID of the decoration"
+    },
+    "decoration_name": {
+      "type": "string",
+      "description": "Name of the decoration"
+    },
+    "decoration_emoji": {
+      "type": "string",
+      "description": "Emoji of the decoration"
+    },
+    "is_placed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the item is placed in airport"
+    },
+    "position_x": {
+      "type": "number",
+      "description": "X position percentage (0-100)"
+    },
+    "position_y": {
+      "type": "number",
+      "description": "Y position percentage (0-100)"
+    }
+  },
+  "required": [
+    "user_email",
+    "decoration_id"
+  ]
+}

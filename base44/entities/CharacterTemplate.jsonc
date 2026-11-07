@@ -1,0 +1,37 @@
+{
+  "name": "CharacterTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Character template name"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "URL to character design image"
+    },
+    "description": {
+      "type": "string",
+      "description": "Character description"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this template is locked and needs to be unlocked with stamps"
+    },
+    "stamp_cost": {
+      "type": "number",
+      "default": 0,
+      "description": "How many stamps needed to unlock this template"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this template is published and available to users"
+    }
+  },
+  "required": [
+    "name",
+    "avatar_url"
+  ]
+}

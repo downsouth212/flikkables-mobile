@@ -1,0 +1,63 @@
+{
+  "name": "GardenDecoration",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the decoration"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Emoji representing the decoration"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "background",
+        "small",
+        "medium",
+        "large",
+        "interactive"
+      ],
+      "description": "Category of decoration"
+    },
+    "stamp_cost": {
+      "type": "number",
+      "description": "Cost in stamps"
+    },
+    "happiness_boost": {
+      "type": "number",
+      "default": 0,
+      "description": "Passive happiness boost per day (0-1)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the item"
+    },
+    "is_theme": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a background theme"
+    },
+    "theme_gradient": {
+      "type": "string",
+      "description": "CSS gradient for background themes"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this item is locked by level"
+    },
+    "level_requirement": {
+      "type": "number",
+      "default": 0,
+      "description": "Level required to unlock this item"
+    }
+  },
+  "required": [
+    "name",
+    "emoji",
+    "category",
+    "stamp_cost"
+  ]
+}

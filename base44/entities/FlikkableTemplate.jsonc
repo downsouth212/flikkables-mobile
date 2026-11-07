@@ -1,0 +1,45 @@
+{
+  "name": "FlikkableTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Flikkable template name"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "URL to Flikkable design image"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common",
+      "description": "Rarity tier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Flikkable description"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this template is locked and needs to be unlocked with stamps"
+    },
+    "stamp_cost": {
+      "type": "number",
+      "default": 0,
+      "description": "How many stamps needed to unlock this template"
+    }
+  },
+  "required": [
+    "name",
+    "avatar_url",
+    "rarity"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "GuildTerritory",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "ID of guild that owns this territory"
+    },
+    "guild_name": {
+      "type": "string",
+      "description": "Name of guild"
+    },
+    "region_name": {
+      "type": "string",
+      "description": "Name of the territory region"
+    },
+    "center_lat": {
+      "type": "number",
+      "description": "Center latitude of territory"
+    },
+    "center_lng": {
+      "type": "number",
+      "description": "Center longitude of territory"
+    },
+    "radius_km": {
+      "type": "number",
+      "default": 50,
+      "description": "Territory radius in kilometers"
+    },
+    "control_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Control points accumulated"
+    },
+    "contested_by": {
+      "type": "string",
+      "description": "Guild ID currently contesting"
+    }
+  },
+  "required": [
+    "guild_id",
+    "region_name",
+    "center_lat",
+    "center_lng"
+  ]
+}

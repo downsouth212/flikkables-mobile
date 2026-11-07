@@ -1,0 +1,140 @@
+{
+  "name": "Character",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Character's nickname"
+    },
+    "avatar_emoji": {
+      "type": "string",
+      "description": "Emoji representing the character (deprecated, use avatar_url)"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "URL to character image"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common",
+      "description": "Rarity tier of the character"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the character owner"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Full name of the owner"
+    },
+    "owner_display_name": {
+      "type": "string",
+      "description": "Display name of the owner"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "home",
+        "traveling",
+        "landed",
+        "picked_up"
+      ],
+      "default": "home",
+      "description": "Current status of the character"
+    },
+    "current_lat": {
+      "type": "number",
+      "description": "Current latitude"
+    },
+    "current_lng": {
+      "type": "number",
+      "description": "Current longitude"
+    },
+    "current_location_name": {
+      "type": "string",
+      "description": "Human readable location name"
+    },
+    "city_info": {
+      "type": "string",
+      "description": "JSON string with city details (population, temperature, attractions)"
+    },
+    "home_lat": {
+      "type": "number",
+      "description": "Home base latitude"
+    },
+    "home_lng": {
+      "type": "number",
+      "description": "Home base longitude"
+    },
+    "total_distance_traveled": {
+      "type": "number",
+      "default": 0,
+      "description": "Total km traveled"
+    },
+    "unique_cities_visited": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of unique cities visited"
+    },
+    "times_returned": {
+      "type": "number",
+      "default": 0,
+      "description": "How many times returned home"
+    },
+    "picked_up_by": {
+      "type": "string",
+      "description": "Email of user who picked it up"
+    },
+    "picked_up_by_name": {
+      "type": "string",
+      "description": "Full name of user who picked it up"
+    },
+    "picked_up_by_display_name": {
+      "type": "string",
+      "description": "Display name of user who picked it up"
+    },
+    "picked_up_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the character was picked up"
+    },
+    "last_flicked": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it was last flicked"
+    },
+    "distance_star": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold"
+      ],
+      "description": "Highest distance star earned (20k, 50k, 100k km)"
+    },
+    "cities_star": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold"
+      ],
+      "description": "Highest cities star earned (10, 20, 50 cities)"
+    },
+    "return_postcards": {
+      "type": "string",
+      "description": "JSON array of postcard image URLs from returns"
+    }
+  },
+  "required": [
+    "name",
+    "owner_email"
+  ]
+}

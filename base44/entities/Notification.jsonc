@@ -1,0 +1,64 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who receives the notification"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "flick_landed",
+        "character_returned",
+        "stamps_earned",
+        "leaderboard_change",
+        "trade_received",
+        "trade_accepted",
+        "trade_declined",
+        "character_achievement",
+        "race_joined",
+        "race_finished",
+        "friend_request_sent",
+        "friend_request_accepted"
+      ],
+      "description": "Type of notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Detailed notification message"
+    },
+    "related_user_email": {
+      "type": "string",
+      "description": "Email of related user (for trades, etc)"
+    },
+    "related_user_name": {
+      "type": "string",
+      "description": "Name of related user"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON string with additional data (character_name, stamps, distance, etc)"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When notification should be auto-deleted"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "title",
+    "message"
+  ]
+}

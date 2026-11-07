@@ -1,0 +1,30 @@
+{
+  "name": "Wishlist",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "ID of the FlikkableTemplate"
+    },
+    "template_name": {
+      "type": "string",
+      "description": "Name of the template"
+    },
+    "template_avatar_url": {
+      "type": "string",
+      "description": "Avatar URL of the template"
+    },
+    "template_rarity": {
+      "type": "string",
+      "description": "Rarity of the template"
+    }
+  },
+  "required": [
+    "user_email",
+    "template_id"
+  ]
+}

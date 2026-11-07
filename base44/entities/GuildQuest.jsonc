@@ -1,0 +1,66 @@
+{
+  "name": "GuildQuest",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "ID of the guild"
+    },
+    "title": {
+      "type": "string",
+      "description": "Quest title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Quest description"
+    },
+    "quest_type": {
+      "type": "string",
+      "enum": [
+        "collaborative",
+        "competitive",
+        "exploration"
+      ],
+      "description": "Type of quest"
+    },
+    "target": {
+      "type": "number",
+      "description": "Target goal"
+    },
+    "current": {
+      "type": "number",
+      "default": 0,
+      "description": "Current progress"
+    },
+    "required_members": {
+      "type": "number",
+      "default": 1,
+      "description": "Minimum members needed to participate"
+    },
+    "participants": {
+      "type": "string",
+      "description": "JSON array of participating member emails"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether quest is completed"
+    },
+    "reward_treasury": {
+      "type": "number",
+      "default": 0,
+      "description": "Treasury stamps awarded on completion"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When quest expires"
+    }
+  },
+  "required": [
+    "guild_id",
+    "title",
+    "quest_type",
+    "target"
+  ]
+}

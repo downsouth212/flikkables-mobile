@@ -1,0 +1,27 @@
+{
+  "name": "GuildChat",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "ID of the guild"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of sender"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of sender"
+    },
+    "message": {
+      "type": "string",
+      "description": "Chat message"
+    }
+  },
+  "required": [
+    "guild_id",
+    "user_email",
+    "message"
+  ]
+}

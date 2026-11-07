@@ -1,0 +1,45 @@
+{
+  "name": "GuildAlliance",
+  "type": "object",
+  "properties": {
+    "guild_a_id": {
+      "type": "string",
+      "description": "First guild ID"
+    },
+    "guild_a_name": {
+      "type": "string",
+      "description": "First guild name"
+    },
+    "guild_b_id": {
+      "type": "string",
+      "description": "Second guild ID"
+    },
+    "guild_b_name": {
+      "type": "string",
+      "description": "Second guild name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "ended"
+      ],
+      "default": "pending",
+      "description": "Alliance status"
+    },
+    "joint_goal": {
+      "type": "string",
+      "description": "Shared goal description"
+    },
+    "joint_progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Progress towards joint goal"
+    }
+  },
+  "required": [
+    "guild_a_id",
+    "guild_b_id"
+  ]
+}

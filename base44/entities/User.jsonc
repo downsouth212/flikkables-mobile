@@ -1,0 +1,76 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "User's display name"
+    },
+    "home_lat": {
+      "type": "number",
+      "description": "Home location latitude"
+    },
+    "home_lng": {
+      "type": "number",
+      "description": "Home location longitude"
+    },
+    "home_location_name": {
+      "type": "string",
+      "description": "Human readable home location"
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "passport_stamps": {
+      "type": "number",
+      "default": 0,
+      "description": "Total stamps earned"
+    },
+    "characters_flicked": {
+      "type": "number",
+      "default": 0,
+      "description": "Total characters flicked"
+    },
+    "characters_picked_up": {
+      "type": "number",
+      "default": 0,
+      "description": "Total characters picked up"
+    },
+    "characters_returned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total characters returned"
+    },
+    "total_distance_traveled": {
+      "type": "number",
+      "default": 0,
+      "description": "Total distance traveled by all characters"
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time user was active"
+    },
+    "garden_character_ids": {
+      "type": "string",
+      "description": "JSON array of character IDs in garden view"
+    }
+  },
+  "required": [
+    "display_name",
+    "home_lat",
+    "home_lng",
+    "home_location_name",
+    "last_seen",
+    "garden_character_ids"
+  ]
+}

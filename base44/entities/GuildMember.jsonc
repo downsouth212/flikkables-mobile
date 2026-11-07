@@ -1,0 +1,62 @@
+{
+  "name": "GuildMember",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "ID of the guild"
+    },
+    "guild_name": {
+      "type": "string",
+      "description": "Name of the guild"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the member"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of the member"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "leader",
+        "officer",
+        "treasurer",
+        "recruiter",
+        "member"
+      ],
+      "default": "member",
+      "description": "Member role in guild"
+    },
+    "custom_role_name": {
+      "type": "string",
+      "description": "Custom role name if set by leader"
+    },
+    "contribution_distance": {
+      "type": "number",
+      "default": 0,
+      "description": "Distance contributed to guild"
+    },
+    "contribution_flicks": {
+      "type": "number",
+      "default": 0,
+      "description": "Flicks contributed to guild"
+    },
+    "contribution_stamps": {
+      "type": "number",
+      "default": 0,
+      "description": "Stamps contributed to guild"
+    },
+    "last_daily_fee_paid": {
+      "type": "string",
+      "format": "date",
+      "description": "Last date daily fee was paid"
+    }
+  },
+  "required": [
+    "guild_id",
+    "user_email"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "AirportDecoration",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Decoration name"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Decoration emoji"
+    },
+    "description": {
+      "type": "string",
+      "description": "Decoration description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "seating",
+        "displays",
+        "amenities",
+        "decorative"
+      ],
+      "description": "Decoration category"
+    },
+    "stamp_cost": {
+      "type": "number",
+      "description": "Cost in stamps"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether locked"
+    },
+    "level_requirement": {
+      "type": "number",
+      "default": 1,
+      "description": "Level required to unlock"
+    }
+  },
+  "required": [
+    "name",
+    "emoji",
+    "category",
+    "stamp_cost"
+  ]
+}

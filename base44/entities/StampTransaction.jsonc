@@ -1,0 +1,54 @@
+{
+  "name": "StampTransaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User who receives the stamps"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "User's name"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "trade_received",
+        "trade_sent",
+        "quest_completed",
+        "trophy_exchanged"
+      ],
+      "description": "Type of transaction"
+    },
+    "stamps": {
+      "type": "number",
+      "description": "Number of stamps in transaction"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Related character ID if applicable"
+    },
+    "character_name": {
+      "type": "string",
+      "description": "Related character name if applicable"
+    },
+    "related_user_email": {
+      "type": "string",
+      "description": "Other user involved in transaction if applicable"
+    },
+    "related_user_name": {
+      "type": "string",
+      "description": "Other user's name if applicable"
+    },
+    "processed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether stamps have been credited to user account"
+    }
+  },
+  "required": [
+    "user_email",
+    "transaction_type",
+    "stamps"
+  ]
+}

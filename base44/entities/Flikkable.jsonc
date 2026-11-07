@@ -1,0 +1,100 @@
+{
+  "name": "Flikkable",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Flikkable's nickname"
+    },
+    "avatar_emoji": {
+      "type": "string",
+      "description": "Emoji representing the Flikkable (deprecated, use avatar_url)"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "URL to Flikkable image"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common",
+      "description": "Rarity tier of the Flikkable"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the Flikkable owner"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Name of the owner"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "home",
+        "traveling",
+        "landed",
+        "picked_up"
+      ],
+      "default": "home",
+      "description": "Current status of the Flikkable"
+    },
+    "current_lat": {
+      "type": "number",
+      "description": "Current latitude"
+    },
+    "current_lng": {
+      "type": "number",
+      "description": "Current longitude"
+    },
+    "current_location_name": {
+      "type": "string",
+      "description": "Human readable location name"
+    },
+    "city_info": {
+      "type": "string",
+      "description": "JSON string with city details (population, temperature, attractions)"
+    },
+    "home_lat": {
+      "type": "number",
+      "description": "Home base latitude"
+    },
+    "home_lng": {
+      "type": "number",
+      "description": "Home base longitude"
+    },
+    "total_distance_traveled": {
+      "type": "number",
+      "default": 0,
+      "description": "Total km traveled"
+    },
+    "times_returned": {
+      "type": "number",
+      "default": 0,
+      "description": "How many times returned home"
+    },
+    "picked_up_by": {
+      "type": "string",
+      "description": "Email of user who picked it up"
+    },
+    "picked_up_by_name": {
+      "type": "string",
+      "description": "Name of user who picked it up"
+    },
+    "last_flicked": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it was last flicked"
+    }
+  },
+  "required": [
+    "name",
+    "owner_email"
+  ]
+}
