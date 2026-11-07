@@ -143,7 +143,7 @@ export default function PassportScreen() {
 
       <Section title="Account">
         <Card list>
-          <ListRow title="Signed in as" right={<Text className="text-sm text-muted">{s.user?.email}</Text>} />
+          <ListRow title={s.user?.email ?? ""} subtitle="Signed in" />
           <ListRow title="Sign out" onPress={s.signOut} />
           <ListRow title="Delete account" onPress={s.deleteAccount} />
         </Card>

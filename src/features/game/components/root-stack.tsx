@@ -72,7 +72,7 @@ export function RootStack() {
         <Stack.Screen name="flikkable/[id]" />
         <Stack.Screen
           name="create"
-          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.85], sheetGrabberVisible: true }}
+          options={{ presentation: 'formSheet', sheetAllowedDetents: [1], sheetGrabberVisible: true }}
         />
       </Stack.Protected>
     </Stack>

@@ -18,7 +18,7 @@ export async function getFix(): Promise<Fix> {
     Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).catch(() => null),
     timeout,
   ]);
-  if (!position) throw new Error('Couldn’t get a location fix right now. Try again outside, or pick a city.');
+  if (!position) throw new Error('Couldn’t get a location fix right now. Try again in a moment, ideally near a window or outside.');
   return { lat: position.coords.latitude, lng: position.coords.longitude };
 }
 
