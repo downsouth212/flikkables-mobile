@@ -99,19 +99,23 @@ export default function PassportScreen() {
             </View>
             {s.claimed !== null ? <Postmark top={`+${s.claimed}`} bottom="today" /> : null}
           </View>
-          <Button
-            onPress={() => {
-              pressHaptic();
-              void s.claimDaily();
-            }}
-            isDisabled={s.claimedToday || s.claiming}
-          >
-            {s.claiming ? (
-              <Spinner color="white" />
-            ) : (
-              <Button.Label>{s.claimedToday ? 'Claimed today' : 'Claim today’s stamp'}</Button.Label>
-            )}
-          </Button>
+          {s.claimedToday ? (
+            <View className="items-center rounded-xl border border-success py-3">
+              <Text className="text-base text-success" style={{ fontFamily: Fonts?.displaySemi }}>
+                ✓ Stamp claimed today
+              </Text>
+            </View>
+          ) : (
+            <Button
+              onPress={() => {
+                pressHaptic();
+                void s.claimDaily();
+              }}
+              isDisabled={s.claiming}
+            >
+              {s.claiming ? <Spinner color="white" /> : <Button.Label>Claim today’s stamp</Button.Label>}
+            </Button>
+          )}
         </Card>
       </Section>
       {s.error ? <Text className="text-sm text-danger">{s.error}</Text> : null}
