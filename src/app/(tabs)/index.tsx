@@ -90,6 +90,15 @@ export default function HomeScreen() {
         <Button
           onPress={() => {
             pressHaptic();
+            s.openLeaderboard();
+          }}
+        >
+          <Button.Label>🏆 Leaderboard</Button.Label>
+        </Button>
+
+        <Button
+          onPress={() => {
+            pressHaptic();
             s.openTrade();
           }}
         >
