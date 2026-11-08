@@ -62,17 +62,18 @@ export default function ExploreScreen() {
             size="sm"
             variant="secondary"
             isDisabled={s.scanning}
+            accessibilityLabel="Refresh"
             onPress={() => {
               pressHaptic();
               void s.scan();
               void s.postcards.load();
             }}
           >
-            {s.scanning ? <Spinner /> : <Button.Label>Refresh</Button.Label>}
+            <Button.Label>{s.scanning ? 'Refreshing...' : 'Refresh'}</Button.Label>
           </Button>
         </View>
 
-        <Segmented values={EXPLORE_TABS} value={s.tab} onChange={s.setTab} labels={['Nearby', 'Carrying', '📸 Postcards', 'Global']} />
+        <Segmented values={EXPLORE_TABS} value={s.tab} onChange={s.setTab} labels={['Nearby', 'Carrying', 'Postcards', 'Global']} />
 
         {s.error ? <Text className="text-sm text-danger">{s.error}</Text> : null}
         {s.postcards.error ? <Text className="text-sm text-danger">{s.postcards.error}</Text> : null}
@@ -133,6 +134,12 @@ export default function ExploreScreen() {
                 />
                 <Text className="text-xs text-muted">Pinch to zoom, drag to move, double-tap to zoom in.</Text>
               </Card>
+            ) : null}
+            {!s.fix && s.scanning ? (
+              <View className="items-center gap-2 py-8">
+                <Spinner />
+                <Text className="text-sm text-muted">Finding your location…</Text>
+              </View>
             ) : null}
             {!s.fix && !s.scanning ? (
               <Empty icon="📍" title="Location Required" body="Enable location to discover Flikkables near you." />
