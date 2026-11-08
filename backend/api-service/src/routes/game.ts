@@ -3,7 +3,7 @@ import { and, desc, eq, gt, gte, ilike, inArray, ne, or, sql } from 'drizzle-orm
 import type { HonoEnv } from '../env'
 import { authMiddleware } from '../middleware/auth'
 import { createDb } from '../db/client'
-import { flikkables, journeys, postcards, profiles, trophies, userItems, type FlikkableRow, type ProfileRow } from '../db/schema'
+import { characterTemplates, flikkables, journeys, postcards, profiles, templateUnlocks, trophies, userItems, type CharacterTemplateRow, type FlikkableRow, type ProfileRow } from '../db/schema'
 import { CITIES, type City } from '../game-cities'
 import { adminRole, loadSettings } from '../game-admin'
 import { catchUpMood, continentFor, dayKey, isCapital, levelFor, MILESTONES, progressQuest, type NewTrophy, type QuestState } from '../game-rules'
@@ -208,12 +208,21 @@ gameRoutes.post('/game/flikkables', async (c) => {
   const userId = c.get('userId')
   const profile = await requireProfile(c)
   if (!profile) return c.json({ error: 'Finish setting up first.' }, 400)
-  const body = await c.req.json<{ name?: string; emoji?: string; lat?: number; lng?: number }>()
+  const body = await c.req.json<{ name?: string; emoji?: string; lat?: number; lng?: number; template_id?: string }>()
   const name = (body.name ?? '').trim().slice(0, 20)
-  const emoji = (body.emoji ?? '').trim().slice(0, 8)
+  const d = db(c)
+  let template: CharacterTemplateRow | undefined
+  if (body.template_id) {
+    ;[template] = await d.select().from(characterTemplates).where(eq(characterTemplates.id, body.template_id))
+    if (!template || template.status !== 'succeeded') return c.json({ error: 'That template is gone.' }, 404)
+    const [unlock] = await d.select().from(templateUnlocks).where(and(eq(templateUnlocks.user_id, userId), eq(templateUnlocks.template_id, template.id)))
+    if (!template.is_published && !unlock) return c.json({ error: 'That template isn’t available.' }, 403)
+    if (template.is_locked && !unlock) return c.json({ error: 'Unlock this Flikkstar first.' }, 403)
+    if (profile.stamps < 10) return c.json({ error: `Not enough stamps! You need 10 but have ${profile.stamps}` }, 400)
+  }
+  const emoji = template ? '⭐' : (body.emoji ?? '').trim().slice(0, 8)
   if (name.length < 1) return c.json({ error: 'Please enter a name for your Flikkable' }, 400)
   if (!emoji) return c.json({ error: 'Choose an Emoji' }, 400)
-  const d = db(c)
   const owned = await d.select({ id: flikkables.id, rarity: flikkables.rarity }).from(flikkables).where(eq(flikkables.owner_id, userId))
   const { max_owned } = await loadSettings(c.env)
   if (owned.length >= max_owned) return c.json({ error: `You can keep up to ${max_owned} Flikkables.` }, 400)
@@ -226,7 +235,9 @@ gameRoutes.post('/game/flikkables', async (c) => {
       owner_name: profile.display_name,
       name,
       emoji,
-      rarity: rollRarity(),
+      rarity: template?.rarity ?? rollRarity(),
+      template_id: template?.id ?? null,
+      is_flikkstar: Boolean(template),
       current_lat: lat,
       current_lng: lng,
       current_place: profile.home_name,
@@ -241,7 +252,10 @@ gameRoutes.post('/game/flikkables', async (c) => {
   const quest = progressQuest(profile.quests, 'rarity_collector', { atLeast: rarities.size })
   await Promise.all([
     d.insert(journeys).values({ flikkable_id: created.id, event: 'created', place: profile.home_name, lat, lng, by_user_id: userId, by_name: profile.display_name }),
-    d.update(profiles).set({ garden_ids: [...profile.garden_ids, created.id], quests: quest.state }).where(eq(profiles.user_id, userId)),
+    d
+      .update(profiles)
+      .set({ garden_ids: [...profile.garden_ids, created.id], quests: quest.state, ...(template ? { stamps: profile.stamps - 10 } : {}) })
+      .where(eq(profiles.user_id, userId)),
   ])
   const earned = await saveTrophies(c, userId, [quest.trophy])
   return c.json({ flikkable: serialize(created), trophies: earned })

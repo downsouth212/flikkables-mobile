@@ -1,3 +1,4 @@
+import { FlikkableFace } from '@/features/game/components/flikkable-face';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, useThemeColor } from 'heroui-native';
 import { useState } from 'react';
@@ -98,7 +99,7 @@ export function CharacterCard({
 
       <View className="flex-row gap-3">
         <View className={cn('size-14 items-center justify-center rounded-xl border-2 bg-background', RARITY_BORDER[f.rarity])}>
-          <Text className="text-3xl">{f.emoji}</Text>
+          <FlikkableFace emoji={f.emoji} templateID={f.template_id} size="text-3xl" />
         </View>
         <View className="flex-1 gap-1">
           <View className="flex-row flex-wrap items-center gap-2">

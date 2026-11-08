@@ -59,6 +59,14 @@
         {
           "locationWhenInUsePermission": "Flikkables uses your location to set your home spot and to find Flikkables that landed near you."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Flikkables uses your camera to take selfie postcards with the Flikkables you find.",
+          "photosPermission": "Flikkables lets you pick a photo from your library to make a selfie postcard.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

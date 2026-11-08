@@ -3,10 +3,15 @@ import { useCallback, useState } from 'react';
 import { Presets } from 'react-native-pulsar';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { getFix, type Fix } from '@/features/game/hooks/use-location';
+import { getFix, placeName, type Fix } from '@/features/game/hooks/use-location';
 import { useGameStore } from '@/features/game/store/game-store';
-import type { NearbyFlikkable, NearbyResult } from '@/features/game/types/game';
+import type { Flikkable, NearbyFlikkable, NearbyResult, Rarity } from '@/features/game/types/game';
 import { gameApi } from '@/features/game/utils/game-api';
+import { usePostcards } from '@/features/postcards/hooks/use-postcards';
+
+export const EXPLORE_TABS = ['nearby', 'carrying', 'postcards', 'global'] as const;
+export const SORTS = ['distance', 'rarity', 'name', 'owner'] as const;
+const RANK: Record<Rarity, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
 
 export function useExploreScreen() {
   const router = useRouter();
@@ -17,25 +22,32 @@ export function useExploreScreen() {
   const flick = useGameStore((s) => s.flick);
   const lastLanding = useGameStore((s) => (s.lastLanding?.origin === 'explore' ? s.lastLanding : null));
   const clearLanding = useGameStore((s) => s.clearLanding);
+  const postcards = usePostcards();
+  const [tab, setTab] = useState<(typeof EXPLORE_TABS)[number]>('nearby');
   const [fix, setFix] = useState<Fix | null>(null);
+  const [place, setPlace] = useState('');
   const [result, setResult] = useState<NearbyResult | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<NearbyFlikkable | null>(null);
   const [busyID, setBusyID] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [hideMine, setHideMine] = useState(false);
+  const [sort, setSort] = useState<(typeof SORTS)[number]>('distance');
+  const [asc, setAsc] = useState(true);
+  const [returning, setReturning] = useState<Flikkable | null>(null);
 
   const scan = async () => {
     setScanning(true);
-    setError(null);
+    setLocationError(null);
     try {
       const next = await getFix();
       setFix(next);
-      const found = await gameApi.nearby(next.lat, next.lng);
-      setResult(found);
-      setSelected((prev) => found.nearby.find((f) => f.id === prev?.id) ?? found.nearby[0] ?? null);
+      placeName(next).then(setPlace).catch(() => undefined);
+      setResult(await gameApi.nearby(next.lat, next.lng));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Couldn’t scan around you.');
+      setLocationError(err instanceof Error ? err.message : 'Couldn’t find your location.');
     } finally {
       setScanning(false);
     }
@@ -44,9 +56,20 @@ export function useExploreScreen() {
   useFocusEffect(
     useCallback(() => {
       void scan();
+      void postcards.load();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
+
+  const dir = asc ? 1 : -1;
+  const nearby = (result?.nearby ?? [])
+    .filter((f) => !hideMine || f.owner_id !== user?.id)
+    .sort((a, b) => {
+      if (sort === 'rarity') return (RANK[a.rarity] - RANK[b.rarity]) * dir;
+      if (sort === 'name') return a.name.localeCompare(b.name) * dir;
+      if (sort === 'owner') return a.owner_name.localeCompare(b.owner_name) * dir;
+      return (a.distance_km - b.distance_km) * dir;
+    });
 
   const pickup = async (f: NearbyFlikkable) => {
     if (!fix) return;
@@ -56,7 +79,8 @@ export function useExploreScreen() {
       const { flikkable } = await gameApi.pickup(f.id, fix);
       upsert(flikkable);
       Presets.System.notificationSuccess();
-      setNotice(`You pikked up ${flikkable.name}. Flikk it onward or send it home to ${flikkable.owner_name}.`);
+      setSelected(null);
+      setNotice(`You pikked up ${flikkable.name}!`);
       await scan();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Couldn’t pikk it up.');
@@ -65,17 +89,20 @@ export function useExploreScreen() {
     }
   };
 
-  const sendHome = async (id: string) => {
-    setBusyID(id);
+  const sendHome = async (f: Flikkable, withPostcard: boolean) => {
+    setReturning(null);
+    setBusyID(f.id);
     setError(null);
     try {
-      const { flikkable, stamps } = await gameApi.sendHome(id);
+      const card = withPostcard ? postcards.unsentFor(f.id) : null;
+      if (card) await postcards.send(card.id);
+      const { flikkable, stamps } = await gameApi.sendHome(f.id);
       upsert(flikkable);
       Presets.System.notificationSuccess();
-      setNotice(`${flikkable.name} is home with ${flikkable.owner_name}. You earned ${stamps} stamps.`);
+      setNotice(`${flikkable.name} returned to ${flikkable.owner_name}! You earned ${stamps} stamps.`);
       if (user) await refresh(user.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Couldn’t send it home.');
+      setError(err instanceof Error ? err.message : 'Couldn’t return it.');
     } finally {
       setBusyID(null);
     }
@@ -93,20 +120,40 @@ export function useExploreScreen() {
     }
   };
 
+  const selfie = async (f: Flikkable) => {
+    setSelected(null);
+    await postcards.takeSelfie(f.id, place || 'Somewhere');
+  };
+
   return {
+    tab,
+    setTab,
     fix,
+    place,
     result,
+    nearby,
     scanning,
+    locationError,
     error,
     notice,
     selected,
     setSelected,
     busyID,
     holding,
+    hideMine,
+    setHideMine,
+    sort,
+    setSort,
+    asc,
+    setAsc,
+    returning,
+    setReturning,
+    postcards,
     scan,
     pickup,
     sendHome,
     flickOnward,
+    selfie,
     lastLanding,
     closeLanding: clearLanding,
     open: (id: string) => router.push({ pathname: '/flikkable/[id]', params: { id } }),

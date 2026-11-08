@@ -1,0 +1,1 @@
+ALTER TABLE "api"."character_templates" ADD COLUMN "rarity" text DEFAULT 'common' NOT NULL;

@@ -56,6 +56,7 @@ export interface Flikkable {
   happiness: number;
   last_fed_at: string | null;
   is_flikkstar: boolean;
+  template_id: string | null;
   pickers: string[];
   created_at: string;
 }

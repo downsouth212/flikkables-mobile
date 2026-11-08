@@ -149,7 +149,7 @@ export function FlickPad({
             if (!flying) void launch();
           }}
         >
-          <CreatureStamp emoji={flikkable.emoji} rarity={flikkable.rarity} size="xl" />
+          <CreatureStamp emoji={flikkable.emoji} templateID={flikkable.template_id} rarity={flikkable.rarity} size="xl" />
         </Animated.View>
       </GestureDetector>
       <View pointerEvents="none" className="h-3 w-40 rounded-full border border-glow bg-glow/20" style={RING_GLOW} />

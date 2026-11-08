@@ -3,11 +3,26 @@ import { useEffect, useState } from 'react';
 import { Presets } from 'react-native-pulsar';
 
 import { confirmDelete } from '@/lib/confirm';
-import type { AdminOverview, AdminPlayer, DropSpot } from '@/features/admin/types/admin';
+import type { AdminOverview, AdminPlayer, Battles, DropSpot } from '@/features/admin/types/admin';
 import { adminApi } from '@/features/admin/utils/admin-api';
 import { getFix } from '@/features/game/hooks/use-location';
 import type { City } from '@/features/game/types/game';
 import { CITIES } from '@/features/game/utils/cities';
+
+export const ADMIN_TABS = ['invite', 'users', 'dummy', 'settings', 'drop'] as const;
+
+export const BATTLES = [
+  { key: 'flick_duel', icon: '⚡', name: 'Flick Duel', body: 'Both flick at same destination, first to land wins' },
+  { key: 'pickup_race', icon: '🏃', name: 'Pickup Race', body: 'Characters placed randomly, closest one wins' },
+  { key: 'timed_challenge', icon: '⏱️', name: 'Timed Challenge', body: 'Set destination and time limit, first to arrive wins' },
+  { key: 'head_to_head', icon: '🎯', name: 'Head-to-Head', body: 'Rarity affects distance, race to destination' },
+  { key: 'distance_derby', icon: '📏', name: 'Distance Derby', body: 'Flick any direction, furthest distance wins' },
+  { key: 'location_chain', icon: '🌍', name: 'Location Chain', body: 'Alternate calling cities, most successful landings wins' },
+  { key: 'survival_sprint', icon: '🏠', name: 'Survival Sprint', body: 'Most returns home in time limit wins' },
+  { key: 'landmark_hunt', icon: '🗽', name: 'Landmark Hunt', body: 'First to reach 3 landmarks wins' },
+] as const;
+
+const ONLINE_MS = 5 * 60_000;
 
 function message(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
@@ -34,6 +49,16 @@ export function useAdminScreen() {
   const [selectedID, setSelectedID] = useState<string | null>(null);
   const [movingHome, setMovingHome] = useState(false);
   const [newAdmin, setNewAdmin] = useState('');
+  const [tab, setTab] = useState<(typeof ADMIN_TABS)[number]>('users');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'user' | 'admin'>('user');
+  const [dummyEmail, setDummyEmail] = useState('');
+  const [dummyPassword, setDummyPassword] = useState('');
+  const [dummyName, setDummyName] = useState('');
+  const [features, setFeatures] = useState({ show_guilds: false, show_map: false, show_races: false });
+  const [battles, setBattles] = useState<Battles>({});
+  const [latInput, setLatInput] = useState('');
+  const [lngInput, setLngInput] = useState('');
 
   const load = async () => {
     try {
@@ -42,6 +67,12 @@ export function useAdminScreen() {
       setPickup(String(next.settings.pickup_radius_m));
       setNearby(String(next.settings.nearby_radius_km));
       setMaxOwned(String(next.settings.max_owned));
+      setFeatures({
+        show_guilds: next.settings.show_guilds === 1,
+        show_map: next.settings.show_map === 1,
+        show_races: next.settings.show_races === 1,
+      });
+      setBattles(next.battles ?? {});
       setError(null);
     } catch (err) {
       setError(message(err, 'Couldn’t load the admin panel.'));
@@ -75,7 +106,59 @@ export function useAdminScreen() {
         nearby_radius_km: Number(nearby),
         max_owned: Number(maxOwned),
       });
-      return 'Game rules saved. Players get them on their next scan.';
+      return 'Settings saved!';
+    });
+
+  const saveFeatures = () =>
+    run('features', async () => {
+      await adminApi.saveSettings({
+        show_guilds: features.show_guilds ? 1 : 0,
+        show_map: features.show_map ? 1 : 0,
+        show_races: features.show_races ? 1 : 0,
+      });
+      return 'Feature settings saved!';
+    });
+
+  const toggleBattle = (key: string, on: boolean) => {
+    const next = { ...battles, [key]: on };
+    setBattles(next);
+    void run('battles', async () => {
+      await adminApi.saveBattles(next);
+      return 'Battle settings updated';
+    });
+  };
+
+  const invite = () =>
+    run('invite', async () => {
+      const email = inviteEmail.trim();
+      if (!email) throw new Error('Please enter an email');
+      const r = await adminApi.invite(email, inviteRole);
+      setInviteEmail('');
+      if (!r.emailed) return `${email} was added, but the email didn’t go out: ${r.reason ?? 'unknown reason'}.`;
+      return `Invitation sent to ${email}!`;
+    });
+
+  const createDummy = () =>
+    run('dummy', async () => {
+      if (!dummyEmail.trim() || !dummyPassword || !dummyName.trim()) throw new Error('Please fill in all fields');
+      await adminApi.dummy({ email: dummyEmail.trim(), password: dummyPassword, name: dummyName.trim() });
+      const done = `Dummy user ${dummyName.trim()} created!`;
+      setDummyEmail('');
+      setDummyPassword('');
+      setDummyName('');
+      return done;
+    });
+
+  const setLocation = (p: AdminPlayer) =>
+    run('home', async () => {
+      const lat = Number(latInput);
+      const lng = Number(lngInput);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || latInput === '' || lngInput === '') {
+        throw new Error('Enter a latitude (−90 to 90) and longitude (−180 to 180).');
+      }
+      await adminApi.moveHome(p.user_id, { lat, lng, name: `${lat.toFixed(3)}, ${lng.toFixed(3)}` });
+      setMovingHome(false);
+      return `${p.display_name}’s location was updated.`;
     });
 
   const drop = () =>
@@ -157,6 +240,30 @@ export function useAdminScreen() {
 
   return {
     back: () => router.back(),
+    tab,
+    setTab,
+    invite: { email: inviteEmail, setEmail: setInviteEmail, role: inviteRole, setRole: setInviteRole, send: invite },
+    dummy: {
+      email: dummyEmail,
+      setEmail: setDummyEmail,
+      password: dummyPassword,
+      setPassword: setDummyPassword,
+      name: dummyName,
+      setName: setDummyName,
+      create: createDummy,
+    },
+    features,
+    setFeature: (key: keyof typeof features, on: boolean) => setFeatures((f) => ({ ...f, [key]: on })),
+    saveFeatures,
+    battles,
+    toggleBattle,
+    online: (data?.players ?? []).filter((p) => p.last_seen_at && Date.now() - new Date(p.last_seen_at).getTime() < ONLINE_MS).length,
+    isOnline: (p: AdminPlayer) => Boolean(p.last_seen_at && Date.now() - new Date(p.last_seen_at).getTime() < ONLINE_MS),
+    latInput,
+    setLatInput,
+    lngInput,
+    setLngInput,
+    setLocation,
     data,
     error,
     notice,
@@ -188,6 +295,9 @@ export function useAdminScreen() {
     select: (id: string | null) => {
       setSelectedID(id);
       setMovingHome(false);
+      const pl = data?.players.find((x) => x.user_id === id);
+      setLatInput(pl ? String(pl.home_lat) : '');
+      setLngInput(pl ? String(pl.home_lng) : '');
     },
     movingHome,
     setMovingHome,

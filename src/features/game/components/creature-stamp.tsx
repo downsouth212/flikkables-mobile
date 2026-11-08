@@ -1,5 +1,6 @@
+import { FlikkableFace } from '@/features/game/components/flikkable-face';
 import { useThemeColor } from 'heroui-native';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Svg, { Circle, Rect } from 'react-native-svg';
 
 import { cn } from '@/lib/cn';
@@ -11,11 +12,13 @@ const BOX = { sm: 52, md: 76, lg: 148, xl: 188 } as const;
 
 export function CreatureStamp({
   emoji,
+  templateID,
   rarity,
   size = 'md',
   edge = 'background',
 }: {
   emoji: string;
+  templateID?: string | null;
   rarity: Rarity;
   size?: keyof typeof BOX;
   /** The colour behind the stamp, used to punch the perforations. */
@@ -50,7 +53,7 @@ export function CreatureStamp({
         style={{ width: box - hole * 5, height: box - hole * 5 }}
         className={cn('items-center justify-center rounded-sm border-2 bg-surface-secondary', RARITY_BORDER[rarity])}
       >
-        <Text className={EMOJI_SIZE[size]}>{emoji}</Text>
+        <FlikkableFace emoji={emoji} templateID={templateID} size={EMOJI_SIZE[size]} />
       </View>
     </View>
   );

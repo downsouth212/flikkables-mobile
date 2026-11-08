@@ -4,7 +4,7 @@ import type { HonoEnv } from '../env'
 import { authMiddleware } from '../middleware/auth'
 import { createDb } from '../db/client'
 import { admins, flikkables, gameSettings, journeys, postcards, profiles } from '../db/schema'
-import { adminRole, DEFAULT_SETTINGS, loadSettings, type AdminRole, type GameSettings } from '../game-admin'
+import { adminRole, DEFAULT_SETTINGS, loadBattles, loadSettings, type AdminRole, type GameSettings } from '../game-admin'
 import { CITIES } from '../game-cities'
 import { haversineKm, offset, rollRarity, SYSTEM_OWNER_ID } from './game'
 
@@ -54,6 +54,7 @@ adminRoutes.get('/admin/overview', async (c) => {
   return c.json({
     me: { user_id: c.get('userId'), role: c.get('role') },
     settings,
+    battles: await loadBattles(c.env),
     defaults: DEFAULT_SETTINGS,
     totals: {
       players: players.length,
@@ -71,6 +72,9 @@ adminRoutes.post('/admin/settings', async (c) => {
     pickup_radius_m: [10, 5000],
     nearby_radius_km: [1, 500],
     max_owned: [1, 100],
+    show_guilds: [0, 1],
+    show_map: [0, 1],
+    show_races: [0, 1],
   }
   const d = db(c)
   for (const key of Object.keys(limits) as (keyof GameSettings)[]) {
@@ -86,6 +90,17 @@ adminRoutes.post('/admin/settings', async (c) => {
       .onConflictDoUpdate({ target: gameSettings.key, set: { value: Math.round(value), updated_at: new Date() } })
   }
   return c.json({ settings: await loadSettings(c.env) })
+})
+
+adminRoutes.post('/admin/battles', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>()
+  const value: Record<string, boolean> = {}
+  for (const [k, v] of Object.entries(body)) if (typeof v === 'boolean' && /^[a-z_]{1,40}$/.test(k)) value[k] = v
+  await db(c)
+    .insert(gameSettings)
+    .values({ key: 'enabled_battles', value })
+    .onConflictDoUpdate({ target: gameSettings.key, set: { value, updated_at: new Date() } })
+  return c.json({ battles: value })
 })
 
 adminRoutes.post('/admin/players/:id/lock', async (c) => {

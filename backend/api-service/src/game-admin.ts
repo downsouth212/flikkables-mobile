@@ -9,9 +9,12 @@ export interface GameSettings {
   pickup_radius_m: number
   nearby_radius_km: number
   max_owned: number
+  show_guilds: number
+  show_map: number
+  show_races: number
 }
 
-export const DEFAULT_SETTINGS: GameSettings = { pickup_radius_m: 50, nearby_radius_km: 25, max_owned: 12 }
+export const DEFAULT_SETTINGS: GameSettings = { pickup_radius_m: 50, nearby_radius_km: 25, max_owned: 12, show_guilds: 0, show_map: 0, show_races: 0 }
 
 interface Ctx {
   env: HonoEnv['Bindings']
@@ -43,4 +46,9 @@ export async function loadSettings(env: HonoEnv['Bindings']): Promise<GameSettin
     if (row.key in merged && typeof row.value === 'number') merged[row.key as keyof GameSettings] = row.value
   }
   return merged
+}
+
+export async function loadBattles(env: HonoEnv['Bindings']): Promise<Record<string, boolean>> {
+  const [row] = await createDb(env.DATABASE_URL).select().from(gameSettings).where(eq(gameSettings.key, 'enabled_battles'))
+  return row && typeof row.value === 'object' && row.value !== null ? (row.value as Record<string, boolean>) : {}
 }

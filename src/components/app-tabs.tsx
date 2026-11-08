@@ -3,6 +3,7 @@ import { useThemeColor } from 'heroui-native';
 import { useUniwind } from 'uniwind';
 
 import { Colors } from '@/constants/theme';
+import { useGameStore } from '@/features/game/store/game-store';
 
 export default function AppTabs() {
   const { theme } = useUniwind();
@@ -10,6 +11,7 @@ export default function AppTabs() {
   // The selected tab tint tracks the brand ACCENT token (icon + label) — never the iOS
   // default blue, so the native tab bar matches the app's design tokens.
   const accent = useThemeColor('accent');
+  const isAdmin = useGameStore((st) => st.role !== null);
 
   // ICON API — EXACT: the Icon takes the `sf` PROP (SF Symbol, iOS) + the `md` PROP
   // (Material Symbol, Android). There is NO `sf:` URI protocol — a string in `src` is
@@ -38,6 +40,15 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf="location.north.circle.fill" md="explore" />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="admin" hidden={!isAdmin} disableAutomaticContentInsets>
+        <NativeTabs.Trigger.Label>Admin</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="shield.lefthalf.filled" md="shield" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="templates" hidden={!isAdmin} disableAutomaticContentInsets>
+        <NativeTabs.Trigger.Label>Templates</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="sparkles" md="auto_awesome" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

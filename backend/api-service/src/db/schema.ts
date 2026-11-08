@@ -98,6 +98,7 @@ export const flikkables = apiSchema.table(
     last_fed_at: timestamp('last_fed_at', { withTimezone: true }),
     mood_day: text('mood_day'),
     is_flikkstar: boolean('is_flikkstar').notNull().default(false),
+    template_id: uuid('template_id'),
     pickers: jsonb('pickers').$type<string[]>().notNull().default([]),
     created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -143,6 +144,12 @@ export const postcards = apiSchema.table(
     job_id: text('job_id').notNull(),
     status: text('status').notNull().default('queued'),
     error: text('error'),
+    owner_id: text('owner_id'),
+    user_name: text('user_name').notNull().default(''),
+    character_name: text('character_name').notNull().default(''),
+    character_emoji: text('character_emoji').notNull().default(''),
+    sent_to_owner: boolean('sent_to_owner').notNull().default(false),
+    sent_at: timestamp('sent_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
@@ -215,3 +222,33 @@ export const trophies = apiSchema.table(
   },
   (t) => ({ userIdx: index('trophies_user_idx').on(t.user_id) }),
 )
+
+export const characterTemplates = apiSchema.table('character_templates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+  prompt: text('prompt').notNull().default(''),
+  rarity: text('rarity').notNull().default('common'),
+  job_id: text('job_id').notNull(),
+  status: text('status').notNull().default('queued'),
+  error: text('error'),
+  is_published: boolean('is_published').notNull().default(false),
+  is_locked: boolean('is_locked').notNull().default(false),
+  stamp_cost: integer('stamp_cost').notNull().default(0),
+  created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type CharacterTemplateRow = typeof characterTemplates.$inferSelect;
+
+export const templateUnlocks = apiSchema.table(
+  'template_unlocks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user_id: text('user_id').notNull(),
+    template_id: uuid('template_id').notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userIdx: index('template_unlocks_user_idx').on(t.user_id),
+  }),
+);

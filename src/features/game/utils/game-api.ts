@@ -20,7 +20,7 @@ export const gameApi = {
   state: () => apiGet<GameState>('/game/state'),
   saveProfile: (body: { display_name: string; home_lat: number; home_lng: number; home_name: string }) =>
     apiPost<{ profile: Profile }>('/game/profile', body),
-  create: (body: { name: string; emoji: string }) =>
+  create: (body: { name: string; emoji: string; template_id?: string }) =>
     apiPost<{ flikkable: Flikkable; trophies: Trophy[] }>('/game/flikkables', body),
   remove: (id: string) => apiDelete<{ ok: boolean }>(`/game/flikkables/${id}`),
   detail: (id: string) => apiGet<{ flikkable: Flikkable; journeys: Journey[] }>(`/game/flikkables/${id}`),

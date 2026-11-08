@@ -1,3 +1,4 @@
+import { FlikkableFace } from '@/features/game/components/flikkable-face';
 import { useEffect, useState } from 'react';
 import { Text, View, type GestureResponderEvent } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
@@ -71,7 +72,7 @@ function Wanderer({ f, width, height, onPress }: { f: Flikkable; width: number; 
       <Pressable onPress={onPress} accessibilityLabel={f.name}>
         <View className="items-center gap-1">
           <View className={cn('size-16 items-center justify-center rounded-2xl border-2 bg-background', RARITY_BORDER[f.rarity])}>
-            <Text className="text-4xl">{f.emoji}</Text>
+            <FlikkableFace emoji={f.emoji} templateID={f.template_id} size="text-4xl" />
             <View className="absolute -right-2 -top-2 rounded-full bg-surface px-1">
               <Text className="text-xs text-foreground">❤️ {f.happiness}</Text>
             </View>
@@ -96,7 +97,7 @@ function Seated({ f, x, y, onPress }: { f: Flikkable; x: number; y: number; onPr
       <Pressable onPress={onPress} accessibilityLabel={f.name}>
         <View className="items-center">
           <View className={cn('size-12 items-center justify-center rounded-xl border-2 bg-background', RARITY_BORDER[f.rarity])}>
-            <Text className="text-2xl">{f.emoji}</Text>
+            <FlikkableFace emoji={f.emoji} templateID={f.template_id} size="text-2xl" />
             <Animated.View className="absolute -right-1 -top-1 size-3 rounded-full bg-success" style={dot} />
           </View>
           <Text className="text-base">🪑</Text>

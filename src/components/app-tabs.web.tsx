@@ -8,7 +8,10 @@ import {
 } from 'expo-router/ui';
 import { Pressable, Text, View } from 'react-native';
 
+import { useGameStore } from '@/features/game/store/game-store';
+
 export default function AppTabs() {
+  const isAdmin = useGameStore((st) => st.role !== null);
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
@@ -20,6 +23,16 @@ export default function AppTabs() {
           <TabTrigger name="explore" href="/explore" asChild>
             <TabButton>Explore</TabButton>
           </TabTrigger>
+          {isAdmin ? (
+            <TabTrigger name="admin" href="/admin" asChild>
+              <TabButton>Admin</TabButton>
+            </TabTrigger>
+          ) : null}
+          {isAdmin ? (
+            <TabTrigger name="templates" href="/templates" asChild>
+              <TabButton>Templates</TabButton>
+            </TabTrigger>
+          ) : null}
         </CustomTabList>
       </TabList>
     </Tabs>

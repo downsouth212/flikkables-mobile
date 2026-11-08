@@ -116,7 +116,7 @@ export function LandingCard({
                 {flikkable.name} landed in {landing.country}
               </Text>
             </View>
-            <CreatureStamp emoji={flikkable.emoji} rarity={flikkable.rarity} size="sm" edge="surface" />
+            <CreatureStamp emoji={flikkable.emoji} templateID={flikkable.template_id} rarity={flikkable.rarity} size="sm" edge="surface" />
           </View>
           <WorldMap
             arcs={[{ key: 'flight', from: { lat: landing.from_lat, lng: landing.from_lng }, to: landing }]}
