@@ -11,6 +11,7 @@ export function AuthImage({ uri, className }: { uri: string; className?: string 
       source={{ uri, headers: { Authorization: `Bearer ${token}` }, cacheKey: uri }}
       className={className}
       contentFit="cover"
+      cachePolicy="memory-disk"
       transition={200}
     />
   );

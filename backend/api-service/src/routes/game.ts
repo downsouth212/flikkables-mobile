@@ -6,6 +6,7 @@ import { createDb } from '../db/client'
 import { characterTemplates, flikkables, journeys, postcards, profiles, templateUnlocks, trophies, userItems, type CharacterTemplateRow, type FlikkableRow, type ProfileRow } from '../db/schema'
 import { CITIES, type City } from '../game-cities'
 import { adminRole, loadSettings } from '../game-admin'
+import { notify } from './notifications'
 import { catchUpMood, continentFor, dayKey, isCapital, levelFor, MILESTONES, progressQuest, type NewTrophy, type QuestState } from '../game-rules'
 
 export const gameRoutes = new Hono<HonoEnv>()
@@ -471,6 +472,17 @@ gameRoutes.post('/game/flikkables/:id/pickup', async (c) => {
     await d.update(profiles).set({ quests: theirs.state }).where(eq(profiles.user_id, owner.user_id))
     await saveTrophies(c, owner.user_id, [theirs.trophy])
   }
+  if (f.owner_id !== SYSTEM_OWNER_ID) {
+    await notify(c, [{
+      user_id: f.owner_id,
+      type: 'flick_landed',
+      title: `${f.name} was picked up!`,
+      message: `${profile.display_name} picked up ${f.name} in ${f.current_place}`,
+      related_user_id: userId,
+      related_user_name: profile.display_name,
+      metadata: { flikkable_id: f.id },
+    }])
+  }
   const earned = await saveTrophies(c, userId, [mine.trophy])
   return c.json({ flikkable: serialize(updated), trophies: earned })
 })
@@ -523,6 +535,25 @@ gameRoutes.post('/game/flikkables/:id/return', async (c) => {
     await d.update(profiles).set({ quests: theirs.state }).where(eq(profiles.user_id, owner.user_id))
     await saveTrophies(c, owner.user_id, [theirs.trophy])
   }
+  const km = Math.round(f.total_km)
+  await notify(c, [
+    ...(isHolder ? [{
+      user_id: userId,
+      type: 'character_returned',
+      title: `${f.name} returned home!`,
+      message: `${f.name} made it back home and earned ${stamps} stamps. It traveled ${km}km.`,
+      metadata: { flikkable_id: f.id },
+    }] : []),
+    ...(owner && !isOwner ? [{
+      user_id: owner.user_id,
+      type: 'character_returned',
+      title: `${f.name} is back home!`,
+      message: `${profile.display_name} returned ${f.name} safely home after traveling ${km}km!`,
+      related_user_id: userId,
+      related_user_name: profile.display_name,
+      metadata: { flikkable_id: f.id },
+    }] : []),
+  ])
   return c.json({ flikkable: serialize(updated), stamps })
 })
 

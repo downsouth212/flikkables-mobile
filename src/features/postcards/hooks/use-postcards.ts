@@ -6,7 +6,9 @@ import { Presets } from 'react-native-pulsar';
 import type { Postcard } from '@/features/postcards/types/postcard';
 import { postcardApi } from '@/features/postcards/utils/postcard-api';
 
-const MAX_SIDE = 1400;
+// The postcard comes out at 768x1024, so a 1024 px photo keeps every detail it can use
+// while uploading and processing much faster.
+const MAX_SIDE = 1024;
 
 async function shrink(uri: string, width: number, height: number) {
   const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
@@ -58,12 +60,32 @@ export function usePostcards() {
     void load();
   }, []);
 
-  const pending = mine.some((p) => p.status === 'queued' || p.status === 'running');
+  const pendingIDs = mine.filter((p) => p.status === 'queued' || p.status === 'running').map((p) => p.id);
+  const pendingKey = pendingIDs.join(',');
   useEffect(() => {
-    if (!pending) return;
-    const t = setInterval(() => void load(), 4000);
+    if (!pendingKey) return;
+    const ids = pendingKey.split(',');
+    const t = setInterval(() => {
+      void Promise.all(
+        ids.map(async (id) => {
+          try {
+            const { postcard } = await postcardApi.get(id);
+            if (postcard.status === 'queued' || postcard.status === 'running') return;
+            if (postcard.status === 'failed') {
+              setMine((prev) => prev.filter((p) => p.id !== id));
+              setError(postcard.error ?? 'Couldn’t make that postcard. Try another photo.');
+              return;
+            }
+            setMine((prev) => prev.map((p) => (p.id === id ? postcard : p)));
+            Presets.System.notificationSuccess();
+          } catch {
+            // try again on the next tick
+          }
+        }),
+      );
+    }, 2000);
     return () => clearInterval(t);
-  }, [pending]);
+  }, [pendingKey]);
 
   const takeSelfie = async (flikkableID: string, locationName: string) => {
     setError(null);
@@ -74,8 +96,7 @@ export function usePostcards() {
       const uri = await shrink(asset.uri, asset.width, asset.height);
       const card = await postcardApi.create(uri, flikkableID, locationName);
       setMine((prev) => [card, ...prev]);
-      Presets.System.notificationSuccess();
-      setToast('Postcard saved to your gallery!');
+      setToast('Making your postcard… it appears in your gallery in a minute or so.');
       setTimeout(() => setToast(null), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Couldn’t make that postcard.');

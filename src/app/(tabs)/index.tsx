@@ -19,6 +19,7 @@ import { ReturnDialog } from '@/features/game/components/return-dialog';
 import { StreakPopup } from '@/features/game/components/streak-popup';
 import { UserStatusBar } from '@/features/game/components/user-status-bar';
 import { useHomeScreen } from '@/features/game/hooks/use-home-screen';
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
 
 const STAMP_RULES = [
   '1 stamp per unique city visited',
@@ -69,6 +70,7 @@ export default function HomeScreen() {
             <View className="size-2 rounded-full bg-success" />
             <Text className="text-xs font-semibold text-foreground">{s.online}</Text>
           </View>
+          <NotificationBell />
           <Pressable onPress={s.openAccount} accessibilityLabel="Account">
             <View className="size-10 items-center justify-center">
               <Ionicons name="person-circle-outline" size={28} color={foreground} />

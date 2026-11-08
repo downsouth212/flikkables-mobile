@@ -252,3 +252,25 @@ export const templateUnlocks = apiSchema.table(
     userIdx: index('template_unlocks_user_idx').on(t.user_id),
   }),
 );
+
+export const notifications = apiSchema.table(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user_id: text('user_id').notNull(),
+    type: text('type').notNull(),
+    title: text('title').notNull(),
+    message: text('message').notNull(),
+    related_user_id: text('related_user_id'),
+    related_user_name: text('related_user_name'),
+    metadata: jsonb('metadata'),
+    read: boolean('read').notNull().default(false),
+    expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userIdx: index('notifications_user_idx').on(t.user_id, t.created_at),
+  }),
+);
+
+export type NotificationRow = typeof notifications.$inferSelect;

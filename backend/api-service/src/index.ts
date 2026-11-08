@@ -14,6 +14,7 @@ import { gameRoutes } from './routes/game'
 import { adminRoutes } from './routes/admin'
 import { rewardRoutes } from './routes/rewards'
 import { extraRoutes } from './routes/extra'
+import { notificationRoutes } from './routes/notifications'
 import { internalCronManifestRoutes } from './routes/internal/cron-manifest'
 import { internalCronDispatchRoutes } from './routes/internal/cron-dispatch'
 import { taskDispatchRoutes } from './routes/internal/task-dispatch'
@@ -29,6 +30,7 @@ app.route('/', gameRoutes)
 app.route('/', adminRoutes)
 app.route('/', rewardRoutes)
 app.route('/', extraRoutes)
+app.route('/', notificationRoutes)
 app.route('/', internalCronManifestRoutes)
 app.route('/', internalCronDispatchRoutes)
 app.route('/', taskDispatchRoutes)
