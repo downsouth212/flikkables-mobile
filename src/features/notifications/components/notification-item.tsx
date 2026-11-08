@@ -17,6 +17,8 @@ const CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; tone: Tone 
   trade_received: { icon: 'send', tone: 'warning' },
   trade_accepted: { icon: 'checkmark-circle', tone: 'success' },
   trade_declined: { icon: 'close-circle', tone: 'danger' },
+  friend_request_sent: { icon: 'person-add', tone: 'accent' },
+  friend_request_accepted: { icon: 'people', tone: 'success' },
 };
 
 export function NotificationItem({

@@ -40,6 +40,11 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf="location.north.circle.fill" md="explore" />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="friends" disableAutomaticContentInsets>
+        <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.2.fill" md="group" />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="admin" hidden={!isAdmin} disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label>Admin</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="shield.lefthalf.filled" md="shield" />
