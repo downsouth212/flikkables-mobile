@@ -77,7 +77,6 @@ export function RootStack() {
         <Stack.Screen name="play/[id]" />
         <Stack.Screen name="rewards" />
         <Stack.Screen name="trophies" />
-        <Stack.Screen name="leaderboard" />
         <Stack.Screen name="account" />
         <Stack.Protected guard={isAdmin}>
           <Stack.Screen name="admin" />

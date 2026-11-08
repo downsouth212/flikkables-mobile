@@ -572,32 +572,6 @@ gameRoutes.get('/game/leaderboard', async (c) => {
   return c.json({ leaders: rows })
 })
 
-gameRoutes.get('/game/rankings', async (c) => {
-  const userId = c.get('userId')
-  const type = c.req.query('type') === 'pikkrs' ? 'pikkrs' : 'flikkrs'
-  const periodParam = c.req.query('period')
-  const period = periodParam === 'daily' || periodParam === 'weekly' ? periodParam : 'all'
-  const startOfDay = new Date(`${dayKey()}T00:00:00Z`)
-  const startOfWeek = new Date(startOfDay.getTime() - ((startOfDay.getUTCDay() + 6) % 7) * 86400_000)
-  const conditions = [eq(journeys.event, type === 'flikkrs' ? 'flicked' : 'picked_up')]
-  if (type === 'flikkrs' && period === 'daily') conditions.push(gte(journeys.created_at, startOfDay))
-  if (type === 'flikkrs' && period === 'weekly') conditions.push(gte(journeys.created_at, startOfWeek))
-  const value =
-    type === 'flikkrs' ? sql<number>`round(coalesce(sum(${journeys.distance_km}), 0))::int` : sql<number>`count(*)::int`
-  const rows = await db(c)
-    .select({ user_id: journeys.by_user_id, display_name: profiles.display_name, value, count: sql<number>`count(*)::int` })
-    .from(journeys)
-    .innerJoin(profiles, eq(profiles.user_id, journeys.by_user_id))
-    .where(and(...conditions))
-    .groupBy(journeys.by_user_id, profiles.display_name)
-  const ranked = rows
-    .filter((r) => r.value > 0)
-    .sort((a, b) => b.value - a.value || a.display_name.localeCompare(b.display_name) || a.user_id.localeCompare(b.user_id))
-    .map((r, i) => ({ rank: i + 1, user_id: r.user_id, display_name: r.display_name, value: r.value, count: type === 'flikkrs' ? r.count : null }))
-  const mine = ranked.find((r) => r.user_id === userId)
-  return c.json({ leaders: ranked.slice(0, 20), me: mine ? { rank: mine.rank, value: mine.value, count: mine.count } : null })
-})
-
 gameRoutes.get('/game/nearby', async (c) => {
   const userId = c.get('userId')
   const lat = Number(c.req.query('lat'))
