@@ -14,6 +14,8 @@ export interface Profile {
   streak: number;
   last_claim_day: string | null;
   level: number;
+  /** Km travelled by every Flikkable this player owns. */
+  flikkables_km?: number;
   stamps_today: number;
   stamps_week: number;
   returned_count: number;
@@ -111,10 +113,18 @@ export interface Leader {
 }
 
 export interface RoamingPin {
+  id: string;
   place: string;
   lat: number;
   lng: number;
   emoji: string;
+  name: string;
+  owner_name: string;
+  rarity: Rarity;
+  status: FlikkableStatus;
+  total_km: number;
+  places: string[];
+  happiness: number;
 }
 
 export interface NearbyResult {

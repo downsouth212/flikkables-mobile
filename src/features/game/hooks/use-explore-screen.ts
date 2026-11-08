@@ -5,7 +5,7 @@ import { Presets } from 'react-native-pulsar';
 import { useAuth } from '@/contexts/AuthContext';
 import { getFix, placeName, type Fix } from '@/features/game/hooks/use-location';
 import { useGameStore } from '@/features/game/store/game-store';
-import type { Flikkable, NearbyFlikkable, NearbyResult, Rarity } from '@/features/game/types/game';
+import type { Flikkable, NearbyFlikkable, NearbyResult, Rarity, RoamingPin } from '@/features/game/types/game';
 import { gameApi } from '@/features/game/utils/game-api';
 import { usePostcards } from '@/features/postcards/hooks/use-postcards';
 
@@ -37,6 +37,7 @@ export function useExploreScreen() {
   const [sort, setSort] = useState<(typeof SORTS)[number]>('distance');
   const [asc, setAsc] = useState(true);
   const [returning, setReturning] = useState<Flikkable | null>(null);
+  const [roamer, setRoamer] = useState<RoamingPin | null>(null);
 
   const scan = async () => {
     setScanning(true);
@@ -148,6 +149,9 @@ export function useExploreScreen() {
     setAsc,
     returning,
     setReturning,
+    roamer,
+    setRoamer,
+    showRoamer: (key: string) => setRoamer(result?.roaming.find((p) => p.id === key) ?? null),
     postcards,
     scan,
     pickup,

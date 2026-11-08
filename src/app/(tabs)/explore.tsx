@@ -1,5 +1,5 @@
 import { Button, Spinner, useThemeColor } from 'heroui-native';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Linking, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { ListRow } from '@/components/list-row';
@@ -27,6 +27,17 @@ function Empty({ icon, title, body }: { icon: string; title: string; body: strin
       <Text className="text-lg font-semibold text-foreground">{title}</Text>
       <Text className="text-center text-sm text-muted">{body}</Text>
     </Card>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="flex-row justify-between gap-3">
+      <Text className="text-sm text-muted">{label}</Text>
+      <Text className="flex-1 text-right text-sm font-semibold text-foreground" numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -260,11 +271,13 @@ export default function ExploreScreen() {
               center={{ lat: 20, lng: 0 }}
               zoom={2}
               me={s.fix ?? undefined}
-              pins={(s.result?.roaming ?? []).map((p, i) => ({ key: `${p.place}-${i}`, lat: p.lat, lng: p.lng, emoji: p.emoji }))}
+              pins={(s.result?.roaming ?? []).map((p) => ({ key: p.id, lat: p.lat, lng: p.lng, emoji: p.emoji }))}
+              onPinPress={s.showRoamer}
             />
             <Text className="text-sm text-muted" style={{ fontFamily: Fonts?.mono }}>
               {(s.result?.roaming.length ?? 0).toString()} FLIKKABLES OUT IN THE WORLD
             </Text>
+            <Text className="text-xs text-muted">Zoom in and tap a Flikkable to see who it belongs to.</Text>
           </View>
         ) : null}
       </ScrollView>
@@ -302,11 +315,43 @@ export default function ExploreScreen() {
           </View>
         ) : null}
         {sel && sel.distance_km > pickupKm ? (
-          <Button isDisabled>
-            <Button.Label>
-              Too Far Away · {Math.max(0, Math.round((sel.distance_km - pickupKm) * 1000))} m closer needed
-            </Button.Label>
-          </Button>
+          <View className="gap-3">
+            <Card className="gap-1 bg-warning/10">
+              <Text className="text-sm font-semibold text-warning">Too Far Away</Text>
+              <Text className="text-xs text-muted">
+                You need to be within {Math.round(pickupKm * 1000)} meters to pikk up this Flikkable. Current distance:{' '}
+                {Math.round(sel.distance_km * 1000).toLocaleString()} m
+              </Text>
+            </Card>
+            <Button
+              variant="secondary"
+              onPress={() => {
+                pressHaptic();
+                void Linking.openURL(
+                  `https://www.google.com/maps/dir/?api=1&destination=${sel.current_lat},${sel.current_lng}`,
+                );
+              }}
+            >
+              <Button.Label>🧭 Get Directions</Button.Label>
+            </Button>
+          </View>
+        ) : null}
+      </GameDialog>
+
+      <GameDialog
+        isOpen={s.roamer !== null}
+        onClose={() => s.setRoamer(null)}
+        title={s.roamer ? `${s.roamer.emoji} ${s.roamer.name}` : ''}
+      >
+        {s.roamer ? (
+          <View className="gap-2">
+            <InfoRow label="Owner" value={s.roamer.owner_name} />
+            <InfoRow label="Level" value={RARITY_LABEL[s.roamer.rarity]} />
+            <InfoRow label="Status" value={s.roamer.status === 'landed' ? 'Roaming, ready to pikk up' : s.roamer.status} />
+            <InfoRow label="Travelled" value={formatKm(s.roamer.total_km)} />
+            <InfoRow label="Cities visited" value={String(s.roamer.places.length)} />
+            <InfoRow label="Now in" value={s.roamer.place} />
+          </View>
         ) : null}
       </GameDialog>
 

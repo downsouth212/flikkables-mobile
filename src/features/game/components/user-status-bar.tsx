@@ -49,7 +49,7 @@ export function UserStatusBar({ profile, onTrophies }: { profile: Profile; onTro
               {profile.display_name}
             </Text>
             <Text className="text-xs text-gold">
-              🏆 Lvl {level} · {Math.round(km).toLocaleString()} km
+              🏆 Lvl {level} · {Math.round(profile.flikkables_km ?? km).toLocaleString()} km
             </Text>
           </View>
           <View className="flex-row gap-3">

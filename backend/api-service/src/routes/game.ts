@@ -164,7 +164,11 @@ gameRoutes.get('/game/state', async (c) => {
   ])
   const p = updated ?? profile
   return c.json({
-    profile: { ...p, level: levelFor(p.total_km), stamps_today: stampTotals?.day ?? 0, stamps_week: stampTotals?.week ?? 0 },
+    profile: {
+      ...p,
+      level: levelFor(p.total_km),
+      flikkables_km: rows.filter((r) => r.owner_id === userId).reduce((sum, r) => sum + r.total_km, 0),
+      stamps_today: stampTotals?.day ?? 0, stamps_week: stampTotals?.week ?? 0 },
     mine: rows.filter((r) => r.owner_id === userId).map(serialize),
     holding: rows.filter((r) => r.owner_id !== userId).map(serialize),
     role,
@@ -588,12 +592,33 @@ gameRoutes.get('/game/rankings', async (c) => {
   if (type === 'flikkrs' && period === 'weekly') conditions.push(gte(journeys.created_at, startOfWeek))
   const value =
     type === 'flikkrs' ? sql<number>`round(coalesce(sum(${journeys.distance_km}), 0))::int` : sql<number>`count(*)::int`
-  const rows = await db(c)
-    .select({ user_id: journeys.by_user_id, display_name: profiles.display_name, value, count: sql<number>`count(*)::int` })
-    .from(journeys)
-    .innerJoin(profiles, eq(profiles.user_id, journeys.by_user_id))
-    .where(and(...conditions))
-    .groupBy(journeys.by_user_id, profiles.display_name)
+  // Flikkrs rank by the km travelled by every Flikkable they own, whoever flicked it.
+  const rows =
+    type === 'flikkrs' && period === 'all'
+      ? await db(c)
+          .select({
+            user_id: flikkables.owner_id,
+            display_name: profiles.display_name,
+            value: sql<number>`round(coalesce(sum(${flikkables.total_km}), 0))::int`,
+            count: sql<number>`count(*)::int`,
+          })
+          .from(flikkables)
+          .innerJoin(profiles, eq(profiles.user_id, flikkables.owner_id))
+          .groupBy(flikkables.owner_id, profiles.display_name)
+      : type === 'flikkrs'
+        ? await db(c)
+            .select({ user_id: flikkables.owner_id, display_name: profiles.display_name, value, count: sql<number>`count(*)::int` })
+            .from(journeys)
+            .innerJoin(flikkables, eq(flikkables.id, journeys.flikkable_id))
+            .innerJoin(profiles, eq(profiles.user_id, flikkables.owner_id))
+            .where(and(...conditions))
+            .groupBy(flikkables.owner_id, profiles.display_name)
+        : await db(c)
+            .select({ user_id: journeys.by_user_id, display_name: profiles.display_name, value, count: sql<number>`count(*)::int` })
+            .from(journeys)
+            .innerJoin(profiles, eq(profiles.user_id, journeys.by_user_id))
+            .where(and(...conditions))
+            .groupBy(journeys.by_user_id, profiles.display_name)
   const ranked = rows
     .filter((r) => r.value > 0)
     .sort((a, b) => b.value - a.value || a.display_name.localeCompare(b.display_name) || a.user_id.localeCompare(b.user_id))
@@ -626,7 +651,20 @@ gameRoutes.get('/game/nearby', async (c) => {
     .filter((f) => f.distance_km <= NEARBY_RADIUS_KM)
     .sort((a, b) => a.distance_km - b.distance_km)
   const roaming = await d
-    .select({ place: flikkables.current_place, lat: flikkables.current_lat, lng: flikkables.current_lng, emoji: flikkables.emoji })
+    .select({
+      id: flikkables.id,
+      place: flikkables.current_place,
+      lat: flikkables.current_lat,
+      lng: flikkables.current_lng,
+      emoji: flikkables.emoji,
+      name: flikkables.name,
+      owner_name: flikkables.owner_name,
+      rarity: flikkables.rarity,
+      status: flikkables.status,
+      total_km: flikkables.total_km,
+      places: flikkables.places,
+      happiness: flikkables.happiness,
+    })
     .from(flikkables)
     .where(eq(flikkables.status, 'landed'))
     .orderBy(desc(flikkables.last_flicked_at))
