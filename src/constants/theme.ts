@@ -86,3 +86,9 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/** Colours inside the street map's web page (Leaflet), which can't read CSS tokens. */
+export const StreetMapColors = {
+  tileBackground: '#e5e3df',
+  pinShadow: 'rgba(0,0,0,0.3)',
+};

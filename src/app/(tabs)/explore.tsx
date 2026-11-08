@@ -9,7 +9,7 @@ import { Fonts } from '@/constants/theme';
 import { CreatureStamp } from '@/features/game/components/creature-stamp';
 import { GameDialog } from '@/features/game/components/game-dialog';
 import { LandingCard } from '@/features/game/components/landing-card';
-import { WorldMap } from '@/features/game/components/world-map';
+import { StreetMap } from '@/features/game/components/street-map';
 import { EXPLORE_TABS, SORTS, useExploreScreen } from '@/features/game/hooks/use-explore-screen';
 import { formatCoords, formatKm, timeUntil } from '@/features/game/utils/geo';
 import { RARITY_LABEL } from '@/features/game/utils/rarity';
@@ -124,15 +124,13 @@ export default function ExploreScreen() {
                     <Button.Label>{s.scanning ? 'Refreshing...' : 'Recalibrate'}</Button.Label>
                   </Button>
                 </View>
-                <WorldMap
-                  zoomable
-                  tall
-                  focus={s.fix}
-                  focusZoom={8}
-                  home={s.fix}
+                <StreetMap
+                  center={s.fix}
+                  zoom={13}
+                  me={s.fix}
                   pins={s.nearby.map((f) => ({ key: f.id, lat: f.current_lat, lng: f.current_lng, emoji: f.emoji }))}
+                  onPinPress={(id) => s.setSelected(s.nearby.find((f) => f.id === id) ?? null)}
                 />
-                <Text className="text-xs text-muted">Pinch to zoom, drag to move, double-tap to zoom in.</Text>
               </Card>
             ) : null}
             {!s.fix && s.scanning ? (
@@ -258,13 +256,12 @@ export default function ExploreScreen() {
 
         {s.tab === 'global' ? (
           <View className="gap-3">
-            <WorldMap
-              zoomable
-              tall
-              home={s.fix ?? undefined}
+            <StreetMap
+              center={{ lat: 20, lng: 0 }}
+              zoom={2}
+              me={s.fix ?? undefined}
               pins={(s.result?.roaming ?? []).map((p, i) => ({ key: `${p.place}-${i}`, lat: p.lat, lng: p.lng, emoji: p.emoji }))}
             />
-            <Text className="text-xs text-muted">Pinch to zoom, drag to move, double-tap to zoom in.</Text>
             <Text className="text-sm text-muted" style={{ fontFamily: Fonts?.mono }}>
               {(s.result?.roaming.length ?? 0).toString()} FLIKKABLES OUT IN THE WORLD
             </Text>
