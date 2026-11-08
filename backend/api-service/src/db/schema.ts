@@ -307,3 +307,25 @@ export const blockedUsers = apiSchema.table(
     pairIdx: uniqueIndex('blocked_users_pair_idx').on(t.blocker_id, t.blocked_id),
   }),
 );
+
+export const tradeOffers = apiSchema.table(
+  'trade_offers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    from_user_id: text('from_user_id').notNull(),
+    to_user_id: text('to_user_id').notNull(),
+    offered_id: uuid('offered_id').notNull(),
+    requested_id: uuid('requested_id'),
+    stamp_amount: integer('stamp_amount'),
+    status: text('status').notNull().default('pending'),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    responded_at: timestamp('responded_at', { withTimezone: true }),
+  },
+  (t) => ({
+    fromIdx: index('trade_offers_from_idx').on(t.from_user_id),
+    toIdx: index('trade_offers_to_idx').on(t.to_user_id),
+    statusIdx: index('trade_offers_status_idx').on(t.status),
+  }),
+);
+
+export type TradeOfferRow = typeof tradeOffers.$inferSelect;

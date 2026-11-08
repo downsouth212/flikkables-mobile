@@ -3,7 +3,7 @@ import { and, desc, eq, gt, gte, ilike, inArray, ne, or, sql } from 'drizzle-orm
 import type { HonoEnv } from '../env'
 import { authMiddleware } from '../middleware/auth'
 import { createDb } from '../db/client'
-import { blockedUsers, characterTemplates, flikkables, friendships, journeys, postcards, profiles, templateUnlocks, trophies, userItems, type CharacterTemplateRow, type FlikkableRow, type ProfileRow } from '../db/schema'
+import { blockedUsers, characterTemplates, flikkables, friendships, journeys, postcards, profiles, templateUnlocks, tradeOffers, trophies, userItems, type CharacterTemplateRow, type FlikkableRow, type ProfileRow } from '../db/schema'
 import { CITIES, type City } from '../game-cities'
 import { adminRole, loadSettings } from '../game-admin'
 import { notify } from './notifications'
@@ -100,7 +100,7 @@ export function dailyQuest(p: ProfileRow) {
   return { dq_day: dayKey(), dq_flicked: 0, dq_returned: 0, dq_flikk_claimed: false, dq_return_claimed: false }
 }
 
-async function saveTrophies(c: { env: HonoEnv['Bindings'] }, userId: string, list: (NewTrophy | null)[]) {
+export async function saveTrophies(c: { env: HonoEnv['Bindings'] }, userId: string, list: (NewTrophy | null)[]) {
   const rows = list.filter((t): t is NewTrophy => t !== null)
   if (rows.length === 0) return []
   await db(c).insert(trophies).values(rows.map((t) => ({ ...t, user_id: userId })))
@@ -271,6 +271,10 @@ gameRoutes.delete('/game/flikkables/:id', async (c) => {
   await d.delete(journeys).where(eq(journeys.flikkable_id, f.id))
   await d.delete(postcards).where(eq(postcards.flikkable_id, f.id))
   await d.delete(flikkables).where(eq(flikkables.id, f.id))
+  await d
+    .update(tradeOffers)
+    .set({ status: 'cancelled', responded_at: new Date() })
+    .where(and(eq(tradeOffers.status, 'pending'), or(eq(tradeOffers.offered_id, f.id), eq(tradeOffers.requested_id, f.id))))
   await d
     .update(profiles)
     .set({ garden_ids: sql`coalesce((select jsonb_agg(x) from jsonb_array_elements(${profiles.garden_ids}) x where x <> to_jsonb(${f.id}::text)), '[]'::jsonb)` })
@@ -619,6 +623,7 @@ gameRoutes.delete('/game/me', async (c) => {
   await d.delete(trophies).where(eq(trophies.user_id, userId))
   await d.delete(friendships).where(or(eq(friendships.requester_id, userId), eq(friendships.addressee_id, userId)))
   await d.delete(blockedUsers).where(or(eq(blockedUsers.blocker_id, userId), eq(blockedUsers.blocked_id, userId)))
+  await d.delete(tradeOffers).where(or(eq(tradeOffers.from_user_id, userId), eq(tradeOffers.to_user_id, userId)))
   await d
     .update(flikkables)
     .set({ status: 'landed', picked_up_by: null, picked_up_by_name: null, picked_up_at: null })

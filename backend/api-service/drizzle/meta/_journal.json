@@ -71,6 +71,13 @@
       "when": 1794136904878,
       "tag": "0009_cultured_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794140358195,
+      "tag": "0010_narrow_blockbuster",
+      "breakpoints": true
     }
   ]
 }

@@ -15,6 +15,7 @@ export const QUESTS: Record<string, { name: string; description: string; icon: s
   lucky_landing: { name: 'Lucky Landing', description: 'Land in capital cities - visit 5 different capitals', icon: '⭐', target: 5, rarity: 'rare' },
   speed_flicker: { name: 'Speed Flicker', description: 'Flick 5 characters in one day', icon: '⚡', target: 5, rarity: 'uncommon' },
   rare_encounter: { name: 'Rare Encounter', description: 'Find and pick up a legendary character', icon: '🌟', target: 1, rarity: 'legendary' },
+  trade_master: { name: 'Trade Master', description: 'Complete 3 successful trades', icon: '💱', target: 3, rarity: 'rare' },
 }
 
 export interface NewTrophy {

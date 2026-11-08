@@ -15,6 +15,7 @@ import { adminRoutes } from './routes/admin'
 import { rewardRoutes } from './routes/rewards'
 import { extraRoutes } from './routes/extra'
 import { friendRoutes } from './routes/friends'
+import { tradeRoutes } from './routes/trades'
 import { notificationRoutes } from './routes/notifications'
 import { internalCronManifestRoutes } from './routes/internal/cron-manifest'
 import { internalCronDispatchRoutes } from './routes/internal/cron-dispatch'
@@ -28,6 +29,7 @@ app.onError(errorHandler)
 app.route('/', healthRoutes)
 app.route('/', meRoutes)
 app.route('/', gameRoutes)
+app.route('/', tradeRoutes)
 app.route('/', adminRoutes)
 app.route('/', rewardRoutes)
 app.route('/', extraRoutes)
