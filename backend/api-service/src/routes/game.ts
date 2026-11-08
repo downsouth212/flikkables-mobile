@@ -3,7 +3,7 @@ import { and, desc, eq, gt, gte, ilike, inArray, ne, or, sql } from 'drizzle-orm
 import type { HonoEnv } from '../env'
 import { authMiddleware } from '../middleware/auth'
 import { createDb } from '../db/client'
-import { characterTemplates, flikkables, journeys, postcards, profiles, templateUnlocks, trophies, userItems, type CharacterTemplateRow, type FlikkableRow, type ProfileRow } from '../db/schema'
+import { blockedUsers, characterTemplates, flikkables, friendships, journeys, postcards, profiles, templateUnlocks, trophies, userItems, type CharacterTemplateRow, type FlikkableRow, type ProfileRow } from '../db/schema'
 import { CITIES, type City } from '../game-cities'
 import { adminRole, loadSettings } from '../game-admin'
 import { notify } from './notifications'
@@ -335,7 +335,13 @@ gameRoutes.get('/game/players', async (c) => {
   const rows = await db(c)
     .select({ user_id: profiles.user_id, display_name: profiles.display_name, home_name: profiles.home_name })
     .from(profiles)
-    .where(and(ilike(profiles.display_name, `%${q.replace(/[%_]/g, '')}%`), ne(profiles.user_id, c.get('userId'))))
+    .where(
+      and(
+        ilike(profiles.display_name, `%${q.replace(/[%_]/g, '')}%`),
+        ne(profiles.user_id, c.get('userId')),
+        sql`not exists (select 1 from ${blockedUsers} where (${blockedUsers.blocker_id} = ${c.get('userId')} and ${blockedUsers.blocked_id} = ${profiles.user_id}) or (${blockedUsers.blocked_id} = ${c.get('userId')} and ${blockedUsers.blocker_id} = ${profiles.user_id}))`,
+      ),
+    )
     .limit(10)
   return c.json({ players: rows })
 })
@@ -611,6 +617,8 @@ gameRoutes.delete('/game/me', async (c) => {
   }
   await d.delete(userItems).where(eq(userItems.user_id, userId))
   await d.delete(trophies).where(eq(trophies.user_id, userId))
+  await d.delete(friendships).where(or(eq(friendships.requester_id, userId), eq(friendships.addressee_id, userId)))
+  await d.delete(blockedUsers).where(or(eq(blockedUsers.blocker_id, userId), eq(blockedUsers.blocked_id, userId)))
   await d
     .update(flikkables)
     .set({ status: 'landed', picked_up_by: null, picked_up_by_name: null, picked_up_at: null })

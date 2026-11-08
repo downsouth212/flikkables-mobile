@@ -1,4 +1,4 @@
-import { pgSchema, text, integer, timestamp, jsonb, index, doublePrecision, uuid, boolean } from 'drizzle-orm/pg-core';
+import { pgSchema, text, integer, timestamp, jsonb, index, uniqueIndex, doublePrecision, uuid, boolean } from 'drizzle-orm/pg-core';
 
 // api-service tables live in their own Postgres schema so the auth-service
 // (which shares the tenant Neon DB) can migrate without touching api
@@ -67,6 +67,7 @@ export const profiles = apiSchema.table('profiles', {
   milestones: jsonb('milestones').$type<number[]>().notNull().default([]),
   quests: jsonb('quests').$type<Record<string, { progress: number; completed: boolean; seen?: string[] }>>().notNull().default({}),
   last_seen_at: timestamp('last_seen_at', { withTimezone: true }),
+  allow_friend_requests: boolean('allow_friend_requests').notNull().default(true),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -274,3 +275,35 @@ export const notifications = apiSchema.table(
 );
 
 export type NotificationRow = typeof notifications.$inferSelect;
+
+
+export const friendships = apiSchema.table(
+  'friendships',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requester_id: text('requester_id').notNull(),
+    addressee_id: text('addressee_id').notNull(),
+    status: text('status').notNull().default('pending'),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    responded_at: timestamp('responded_at', { withTimezone: true }),
+  },
+  (t) => ({
+    pairIdx: uniqueIndex('friendships_pair_idx').on(t.requester_id, t.addressee_id),
+    addresseeIdx: index('friendships_addressee_idx').on(t.addressee_id),
+  }),
+);
+
+export type FriendshipRow = typeof friendships.$inferSelect;
+
+export const blockedUsers = apiSchema.table(
+  'blocked_users',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    blocker_id: text('blocker_id').notNull(),
+    blocked_id: text('blocked_id').notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pairIdx: uniqueIndex('blocked_users_pair_idx').on(t.blocker_id, t.blocked_id),
+  }),
+);
