@@ -171,6 +171,7 @@ export function useHomeScreen() {
     openJourney: (id: string) => router.push({ pathname: '/flikkable/[id]', params: { id } }),
     openRewards: () => router.push('/rewards'),
     openTrophies: () => router.push('/trophies'),
+    openTrade: () => router.push('/trade'),
     openAccount: () => router.push('/account'),
   };
 }

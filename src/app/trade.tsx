@@ -55,7 +55,8 @@ export default function TradeScreen() {
                 offer={o}
                 incoming={incoming}
                 stamps={s.stamps}
-                busy={s.busy?.id === o.id ? s.busy.action : s.busy ? 'accept' : null}
+                busy={s.busy?.id === o.id ? s.busy.action : null}
+                disabled={s.busy !== null}
                 onAccept={() => s.accept(o.id)}
                 onDecline={() => s.decline(o.id)}
                 onCancel={() => s.cancel(o.id)}

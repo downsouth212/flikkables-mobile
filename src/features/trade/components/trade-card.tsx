@@ -41,6 +41,7 @@ export function TradeCard({
   incoming,
   stamps,
   busy,
+  disabled,
   onAccept,
   onDecline,
   onCancel,
@@ -49,6 +50,7 @@ export function TradeCard({
   incoming: boolean;
   stamps: number;
   busy: TradeAction | null;
+  disabled: boolean;
   onAccept: () => void;
   onDecline: () => void;
   onCancel: () => void;
@@ -104,7 +106,7 @@ export function TradeCard({
           <Button
             variant="secondary"
             className="flex-1"
-            isDisabled={busy !== null}
+            isDisabled={disabled}
             onPress={() => {
               pressHaptic();
               onDecline();
@@ -114,7 +116,7 @@ export function TradeCard({
           </Button>
           <Button
             className="flex-1"
-            isDisabled={busy !== null || short}
+            isDisabled={disabled || short}
             onPress={() => {
               pressHaptic();
               onAccept();
@@ -126,7 +128,7 @@ export function TradeCard({
       ) : (
         <Button
           variant="danger-soft"
-          isDisabled={busy !== null}
+          isDisabled={disabled}
           onPress={() => {
             pressHaptic();
             onCancel();

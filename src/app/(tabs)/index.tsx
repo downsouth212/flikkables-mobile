@@ -87,6 +87,15 @@ export default function HomeScreen() {
           <Button.Label>🎁 Daily Rewards</Button.Label>
         </Button>
 
+        <Button
+          onPress={() => {
+            pressHaptic();
+            s.openTrade();
+          }}
+        >
+          <Button.Label>🔄 Trade</Button.Label>
+        </Button>
+
         {s.profile ? <UserStatusBar profile={s.profile} onTrophies={s.openTrophies} /> : null}
 
         <View className="flex-row gap-3">
