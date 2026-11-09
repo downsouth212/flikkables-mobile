@@ -32,14 +32,14 @@ const STAMP_RULES = [
 
 function PlaceTile({ icon, count, line, hint, empty, onPress }: { icon: string; count: number; line: string; hint: string; empty: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} accessibilityLabel={line}>
-      <Card className="flex-1 items-center gap-1">
+    <Pressable className="flex-1" onPress={onPress} accessibilityLabel={line}>
+      <Card className="flex-1 items-center justify-center gap-1">
         <Text className="text-4xl">{icon}</Text>
         <Text className="text-3xl text-foreground" style={{ fontFamily: Fonts?.display }}>
           {count}
         </Text>
         <Text className="text-center text-sm font-semibold text-foreground">{count ? line : empty}</Text>
-        {count ? <Text className="text-xs text-muted">{hint}</Text> : null}
+        <Text className="text-xs text-muted">{hint}</Text>
       </Card>
     </Pressable>
   );
@@ -112,23 +112,14 @@ export default function HomeScreen() {
         />
 
         {s.tab === 'home' ? (
-          s.atHome.length === 0 ? (
-            <Card className="items-center gap-3">
-              <Text className="text-5xl">🥚</Text>
-              <Text className="text-lg font-bold text-foreground">No Flikkables Yet</Text>
-              <Text className="text-center text-sm text-muted">Create your first Flikkable to start the adventure!</Text>
-              <Button onPress={s.create}>
-                <Button.Label>Create Flikkable</Button.Label>
-              </Button>
-            </Card>
-          ) : (
+          <View className="gap-3">
             <View className="flex-row gap-3">
               <View className="flex-1">
                 <PlaceTile
                   icon="🌳"
                   count={s.garden.length}
                   line="Relaxing in garden"
-                  hint="Click to view"
+                  hint="Tap to view Garden"
                   empty="Move Flikkables here from the Airport"
                   onPress={() => s.openPlace('garden')}
                 />
@@ -144,7 +135,17 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
-          )
+            {s.atHome.length === 0 ? (
+              <Card className="items-center gap-3">
+                <Text className="text-5xl">🥚</Text>
+                <Text className="text-lg font-bold text-foreground">No Flikkables Yet</Text>
+                <Text className="text-center text-sm text-muted">Create your first Flikkable to start the adventure!</Text>
+                <Button onPress={s.create}>
+                  <Button.Label>Create Flikkable</Button.Label>
+                </Button>
+              </Card>
+            ) : null}
+          </View>
         ) : (
           <View className="gap-3">
             <AwayFilterBar filter={s.filter} onChange={s.setFilter} />
