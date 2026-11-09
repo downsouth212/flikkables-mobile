@@ -3,7 +3,7 @@ import { Linking, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { ListRow } from '@/components/list-row';
-import { pressHaptic } from '@/components/pressable';
+import { Pressable, pressHaptic } from '@/components/pressable';
 import { Segmented } from '@/components/segmented';
 import { Fonts } from '@/constants/theme';
 import { CreatureStamp } from '@/features/game/components/creature-stamp';
@@ -13,6 +13,8 @@ import { StreetMap } from '@/features/game/components/street-map';
 import { EXPLORE_TABS, SORTS, useExploreScreen } from '@/features/game/hooks/use-explore-screen';
 import { formatCoords, formatKm, timeUntil } from '@/features/game/utils/geo';
 import { RARITY_LABEL } from '@/features/game/utils/rarity';
+import { CityInfoSection } from '@/features/places/components/city-info';
+import { OwnerCardView } from '@/features/places/components/owner-card';
 import { PostcardGallery } from '@/features/postcards/components/postcard-gallery';
 
 function distanceLabel(km: number) {
@@ -340,17 +342,41 @@ export default function ExploreScreen() {
 
       <GameDialog
         isOpen={s.roamer !== null}
-        onClose={() => s.setRoamer(null)}
-        title={s.roamer ? `${s.roamer.emoji} ${s.roamer.name}` : ''}
+        onClose={s.closeRoamer}
+        title={s.roamer ? (s.ownerView ? `${s.roamer.owner_name}’s Stats` : `${s.roamer.emoji} ${s.roamer.name}`) : ''}
+        scroll
       >
-        {s.roamer ? (
-          <View className="gap-2">
-            <InfoRow label="Owner" value={s.roamer.owner_name} />
-            <InfoRow label="Level" value={RARITY_LABEL[s.roamer.rarity]} />
-            <InfoRow label="Status" value={s.roamer.status === 'landed' ? 'Roaming, ready to pikk up' : s.roamer.status} />
-            <InfoRow label="Travelled" value={formatKm(s.roamer.total_km)} />
-            <InfoRow label="Cities visited" value={String(s.roamer.places.length)} />
-            <InfoRow label="Now in" value={s.roamer.place} />
+        {s.roamer && s.ownerView ? (
+          <View className="gap-3">
+            <OwnerCardView userID={s.roamer.owner_id} />
+            <Button
+              variant="secondary"
+              onPress={() => {
+                pressHaptic();
+                s.setOwnerView(false);
+              }}
+            >
+              <Button.Label>Back to {s.roamer.name}</Button.Label>
+            </Button>
+          </View>
+        ) : null}
+        {s.roamer && !s.ownerView ? (
+          <View className="gap-3">
+            <View className="gap-2">
+              <View className="flex-row justify-between gap-3">
+                <Text className="text-sm text-muted">Owner</Text>
+                <Pressable onPress={() => s.setOwnerView(true)} accessibilityLabel={`View ${s.roamer.owner_name}’s stats`}>
+                  <Text className="text-sm font-semibold text-accent underline" numberOfLines={1}>
+                    {s.roamer.owner_name}
+                  </Text>
+                </Pressable>
+              </View>
+              <InfoRow label="Level" value={RARITY_LABEL[s.roamer.rarity]} />
+              <InfoRow label="Status" value={s.roamer.status === 'landed' ? 'Roaming, ready to pikk up' : s.roamer.status} />
+              <InfoRow label="Travelled" value={formatKm(s.roamer.total_km)} />
+              <InfoRow label="Cities visited" value={String(s.roamer.places.length)} />
+            </View>
+            <CityInfoSection place={s.roamer.place} />
           </View>
         ) : null}
       </GameDialog>

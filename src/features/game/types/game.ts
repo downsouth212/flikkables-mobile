@@ -119,6 +119,7 @@ export interface RoamingPin {
   lng: number;
   emoji: string;
   name: string;
+  owner_id: string;
   owner_name: string;
   rarity: Rarity;
   status: FlikkableStatus;

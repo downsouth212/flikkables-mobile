@@ -658,6 +658,7 @@ gameRoutes.get('/game/nearby', async (c) => {
       lng: flikkables.current_lng,
       emoji: flikkables.emoji,
       name: flikkables.name,
+      owner_id: flikkables.owner_id,
       owner_name: flikkables.owner_name,
       rarity: flikkables.rarity,
       status: flikkables.status,

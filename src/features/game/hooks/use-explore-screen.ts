@@ -38,6 +38,7 @@ export function useExploreScreen() {
   const [asc, setAsc] = useState(true);
   const [returning, setReturning] = useState<Flikkable | null>(null);
   const [roamer, setRoamer] = useState<RoamingPin | null>(null);
+  const [ownerView, setOwnerView] = useState(false);
 
   const scan = async () => {
     setScanning(true);
@@ -150,8 +151,16 @@ export function useExploreScreen() {
     returning,
     setReturning,
     roamer,
-    setRoamer,
-    showRoamer: (key: string) => setRoamer(result?.roaming.find((p) => p.id === key) ?? null),
+    ownerView,
+    setOwnerView,
+    closeRoamer: () => {
+      setRoamer(null);
+      setOwnerView(false);
+    },
+    showRoamer: (key: string) => {
+      setOwnerView(false);
+      setRoamer(result?.roaming.find((p) => p.id === key) ?? null);
+    },
     postcards,
     scan,
     pickup,
