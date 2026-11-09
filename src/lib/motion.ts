@@ -42,6 +42,26 @@ export const durations = {
   sway: 1500,
   /** The web airport: the ready-to-board dot pulses. */
   pulse: 1000,
+  /** Garden at night: one soft "z" drifts up from a sleeping Flikkable. */
+  snooze: 2400,
+  /** Garden: a sleeper's slow breathing. */
+  breathe: 1800,
+  /** Garden: a butterfly or firefly drifts to a new spot. */
+  drift: 5000,
+  /** Garden: hearts float off a petted Flikkable. */
+  hearts: 900,
+  /** Airport: a Flikkable walks through the boarding gate. */
+  board: 700,
+  /** Airport: a returning Flikkable walks out of the arrivals door to its seat. */
+  arrive: 1800,
+  /** Airport: one flap of the departures board. */
+  flap: 120,
+  /** A walking step bob. */
+  step: 280,
+  /** Garden: a ripple ring spreads across the pond or fountain. */
+  ripple: 1200,
+  /** Airport: the plane climbs out of the gate. */
+  takeoff: 1400,
 } as const;
 
 export const easings = {

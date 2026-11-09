@@ -92,3 +92,8 @@ export const StreetMapColors = {
   tileBackground: '#e5e3df',
   pinShadow: 'rgba(0,0,0,0.3)',
 };
+
+/** The soft floor shadow over the painted Garden and Airport backdrops (gradient stops can't read CSS tokens). */
+export const SceneColors = {
+  floorShade: ['transparent', 'rgba(10,6,20,0.28)'] as const,
+};

@@ -29,6 +29,13 @@
   --color-plum-ink: #c98bff;
   --color-neon: #39ff88;
   --color-glow: #b44cff;
+  /* Garden and Airport scenes: painted 3D backdrops, same in both themes. */
+  --color-soil: #5a3a22;
+  --color-soil-rim: #8a5d38;
+  --color-shade: #0a0614;
+  --color-firefly: #fff27a;
+  --color-board: #15121c;
+  --color-board-ink: #ffcf3f;
   --radius: 1rem;
   --font-display: ChakraPetch_700Bold;
   --font-display-semi: ChakraPetch_600SemiBold;

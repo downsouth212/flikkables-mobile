@@ -1,5 +1,6 @@
 import { apiDelete, apiGet, apiPost } from '@/utils/api';
 
+import type { GardenPlant, GardenPlants, PickResult } from '@/features/game/types/garden';
 import type {
   Decoration,
   FlickResult,
@@ -27,6 +28,10 @@ export const gameApi = {
   move: (ids: string[], to: PlaceKind) => apiPost<{ garden_ids: string[] }>('/game/garden', { ids, to }),
   feed: (id: string) => apiPost<{ flikkable: Flikkable }>(`/game/flikkables/${id}/feed`, {}),
   play: (id: string) => apiPost<{ flikkable: Flikkable }>(`/game/flikkables/${id}/play`, {}),
+  pet: (id: string) => apiPost<{ flikkable: Flikkable; boosted: boolean }>(`/game/flikkables/${id}/pet`, {}),
+  plants: () => apiGet<GardenPlants>('/game/garden/plants'),
+  plant: (bed: number) => apiPost<{ plant: GardenPlant }>('/game/garden/plants', { bed }),
+  pick: (bed: number) => apiPost<PickResult>(`/game/garden/plants/${bed}/pick`, {}),
   players: (q: string) => apiGet<{ players: Player[] }>(`/game/players?q=${encodeURIComponent(q)}`),
   flick: (id: string, body: { lat?: number; lng?: number; target_user_id?: string; city?: string }) =>
     apiPost<FlickResult>(`/game/flikkables/${id}/flick`, body),

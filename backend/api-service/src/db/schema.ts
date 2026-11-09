@@ -329,3 +329,18 @@ export const tradeOffers = apiSchema.table(
 );
 
 export type TradeOfferRow = typeof tradeOffers.$inferSelect;
+
+// Seeds planted in a player's garden beds; ready to pick a day after planting.
+export const gardenPlants = apiSchema.table(
+  'garden_plants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user_id: text('user_id').notNull(),
+    bed: integer('bed').notNull(),
+    flower: text('flower').notNull(),
+    planted_at: timestamp('planted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('garden_plants_user_bed').on(t.user_id, t.bed)],
+);
+
+export type GardenPlantRow = typeof gardenPlants.$inferSelect;

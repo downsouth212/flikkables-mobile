@@ -1,16 +1,18 @@
 import { Hono } from 'hono'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import type { HonoEnv } from '../env'
 import { authMiddleware } from '../middleware/auth'
-import { flikkables, profiles } from '../db/schema'
+import { flikkables, gardenPlants, profiles } from '../db/schema'
 import { CITIES } from '../game-cities'
 import { KV } from '../platform/kv'
 import { newlyAi } from '../platform/ai'
-import { db } from './game'
+import { db, serialize } from './game'
 
 export const placeRoutes = new Hono<HonoEnv>()
 placeRoutes.use('/game/owners/*', authMiddleware)
 placeRoutes.use('/game/city', authMiddleware)
+placeRoutes.use('/game/garden/*', authMiddleware)
+placeRoutes.use('/game/flikkables/:id/pet', authMiddleware)
 
 // The country part of the home place picked at sign-up, e.g. "Manila, Philippines" → "Philippines".
 function countryOf(place: string) {
@@ -90,4 +92,67 @@ placeRoutes.get('/game/city', async (c) => {
   const info: CityInfo = { place, population, attractions }
   if (attractions.length > 0) await kv.set(key, info)
   return c.json({ city: info })
+})
+
+// ---------- Garden beds ----------
+
+export const GARDEN_BEDS = 6
+const GROW_HOURS = 24
+const PICK_STAMPS = 3
+const FLOWERS = ['🌷', '🌻', '🌹', '🌼', '🪻', '🌺']
+
+function plantView(p: { bed: number; flower: string; planted_at: Date }) {
+  const ready = new Date(p.planted_at.getTime() + GROW_HOURS * 3600_000)
+  return { bed: p.bed, flower: p.flower, planted_at: p.planted_at.toISOString(), ready_at: ready.toISOString() }
+}
+
+placeRoutes.get('/game/garden/plants', async (c) => {
+  const rows = await db(c).select().from(gardenPlants).where(eq(gardenPlants.user_id, c.get('userId')))
+  return c.json({ plants: rows.map(plantView), beds: GARDEN_BEDS, grow_hours: GROW_HOURS, pick_stamps: PICK_STAMPS })
+})
+
+placeRoutes.post('/game/garden/plants', async (c) => {
+  const body = await c.req.json<{ bed?: number }>()
+  const bed = Math.round(body.bed ?? -1)
+  if (bed < 0 || bed >= GARDEN_BEDS) return c.json({ error: 'Pick an empty flower bed.' }, 400)
+  const flower = FLOWERS[Math.floor(Math.random() * FLOWERS.length)]!
+  const [row] = await db(c)
+    .insert(gardenPlants)
+    .values({ user_id: c.get('userId'), bed, flower })
+    .onConflictDoNothing()
+    .returning()
+  if (!row) return c.json({ error: 'Something is already growing there.' }, 409)
+  return c.json({ plant: plantView(row) })
+})
+
+placeRoutes.post('/game/garden/plants/:bed/pick', async (c) => {
+  const userId = c.get('userId')
+  const bed = Number(c.req.param('bed'))
+  const d = db(c)
+  const [row] = await d.select().from(gardenPlants).where(and(eq(gardenPlants.user_id, userId), eq(gardenPlants.bed, bed)))
+  if (!row) return c.json({ error: 'Nothing is growing there.' }, 404)
+  if (Date.now() < row.planted_at.getTime() + GROW_HOURS * 3600_000) return c.json({ error: 'Still growing. Come back when it blooms.' }, 400)
+  const [gone] = await d.delete(gardenPlants).where(eq(gardenPlants.id, row.id)).returning()
+  if (!gone) return c.json({ error: 'Already picked.' }, 409)
+  const [p] = await d
+    .update(profiles)
+    .set({ stamps: sql`${profiles.stamps} + ${PICK_STAMPS}` })
+    .where(eq(profiles.user_id, userId))
+    .returning({ stamps: profiles.stamps })
+  return c.json({ stamps_awarded: PICK_STAMPS, stamps: p?.stamps ?? null, flower: row.flower })
+})
+
+// A pet cheers a Flikkable up by one heart, at most once an hour each.
+placeRoutes.post('/game/flikkables/:id/pet', async (c) => {
+  const userId = c.get('userId')
+  const id = c.req.param('id')
+  const d = db(c)
+  const [f] = await d.select().from(flikkables).where(eq(flikkables.id, id))
+  if (!f || f.owner_id !== userId) return c.json({ error: 'That Flikkable is gone.' }, 404)
+  const kv = new KV(d)
+  const key = `pet:${id}`
+  if (await kv.get<boolean>(key)) return c.json({ flikkable: serialize(f), boosted: false })
+  await kv.set(key, true, { ttlSeconds: 3600 })
+  const [updated] = await d.update(flikkables).set({ happiness: Math.min(f.happiness + 1, 5) }).where(eq(flikkables.id, id)).returning()
+  return c.json({ flikkable: serialize(updated ?? f), boosted: true })
 })
