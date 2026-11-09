@@ -30,7 +30,17 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 /** The web UserStatusBar: tap to expand the counts and the level bar. */
-export function UserStatusBar({ profile, onTrophies }: { profile: Profile; onTrophies: () => void }) {
+export function UserStatusBar({
+  profile,
+  onTrophies,
+  onRewards,
+  onLeaderboard,
+}: {
+  profile: Profile;
+  onTrophies: () => void;
+  onRewards: () => void;
+  onLeaderboard: () => void;
+}) {
   const muted = useThemeColor('muted');
   const [open, setOpen] = useState(false);
   const level = profile.level ?? 1;
@@ -87,6 +97,26 @@ export function UserStatusBar({ profile, onTrophies }: { profile: Profile; onTro
               }}
             >
               <Button.Label>🏆 Trophy Room</Button.Label>
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onPress={() => {
+                pressHaptic();
+                onRewards();
+              }}
+            >
+              <Button.Label>🎁 Daily Rewards</Button.Label>
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onPress={() => {
+                pressHaptic();
+                onLeaderboard();
+              }}
+            >
+              <Button.Label>🥇 Leaderboard</Button.Label>
             </Button>
           </View>
         ) : null}

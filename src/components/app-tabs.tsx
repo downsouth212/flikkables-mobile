@@ -40,6 +40,11 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf="location.north.circle.fill" md="explore" />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="trade" disableAutomaticContentInsets>
+        <NativeTabs.Trigger.Label>Trade</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="arrow.left.arrow.right" md="swap_horiz" />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="friends" disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.2.fill" md="group" />

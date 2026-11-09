@@ -78,34 +78,12 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        <Button
-          onPress={() => {
-            pressHaptic();
-            s.openRewards();
-          }}
-        >
-          <Button.Label>🎁 Daily Rewards</Button.Label>
-        </Button>
-
-        <Button
-          onPress={() => {
-            pressHaptic();
-            s.openLeaderboard();
-          }}
-        >
-          <Button.Label>🏆 Leaderboard</Button.Label>
-        </Button>
-
-        <Button
-          onPress={() => {
-            pressHaptic();
-            s.openTrade();
-          }}
-        >
-          <Button.Label>🔄 Trade</Button.Label>
-        </Button>
-
-        {s.profile ? <UserStatusBar profile={s.profile} onTrophies={s.openTrophies} /> : null}
+        {s.profile ? <UserStatusBar
+            profile={s.profile}
+            onTrophies={s.openTrophies}
+            onRewards={s.openRewards}
+            onLeaderboard={s.openLeaderboard}
+          /> : null}
 
         <View className="flex-row gap-3">
           <Pressable onPress={() => setStampHelp(true)} accessibilityLabel="How stamps work">

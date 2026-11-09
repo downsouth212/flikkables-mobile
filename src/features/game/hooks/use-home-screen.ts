@@ -172,7 +172,6 @@ export function useHomeScreen() {
     openRewards: () => router.push('/rewards'),
     openTrophies: () => router.push('/trophies'),
     openLeaderboard: () => router.push('/leaderboard'),
-    openTrade: () => router.push('/trade'),
     openAccount: () => router.push('/account'),
   };
 }
