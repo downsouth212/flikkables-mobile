@@ -42,24 +42,61 @@ async function refreshPostcards(c: Ctx, rows: PostcardRow[]) {
   )
 }
 
+// A busy AI service is retried on the next refresh; anything else is a real failure.
+function retryable(err: unknown) {
+  return !(err instanceof NewlyAiError) || err.status === 429 || err.status === 409 || err.status >= 500
+}
+
+async function startTemplateJob(c: Ctx, row: CharacterTemplateRow) {
+  const d = db(c)
+  try {
+    const job = await newlyAi(c.env, 'templates').generate(
+      { model: 'image', prompt: row.prompt, width: 1024, height: 1024 },
+      `tpl-${row.id}`,
+    )
+    const [updated] = await d
+      .update(characterTemplates)
+      .set({ job_id: job.id, status: settle(job.status), error: null })
+      .where(eq(characterTemplates.id, row.id))
+      .returning()
+    return updated ?? row
+  } catch (err) {
+    const message = err instanceof Error ? err.message.slice(0, 200) : 'Image generation failed.'
+    const [updated] = await d
+      .update(characterTemplates)
+      .set(retryable(err) ? { error: null } : { status: 'failed', error: message })
+      .where(eq(characterTemplates.id, row.id))
+      .returning()
+    return updated ?? row
+  }
+}
+
 async function refreshTemplates(c: Ctx, rows: CharacterTemplateRow[]) {
   const d = db(c)
-  return Promise.all(
-    rows.map(async (row) => {
-      if (row.status === 'succeeded' || row.status === 'failed') return row
-      try {
-        const job = await newlyAi(c.env, 'templates').get(row.job_id)
-        const [updated] = await d
-          .update(characterTemplates)
-          .set({ status: settle(job.status), error: job.error })
-          .where(eq(characterTemplates.id, row.id))
-          .returning()
-        return updated ?? row
-      } catch {
-        return row
-      }
-    }),
-  )
+  const out: CharacterTemplateRow[] = []
+  // One at a time, so queued images start as the AI service frees up.
+  for (const row of rows) {
+    if (row.status === 'succeeded' || row.status === 'failed') {
+      out.push(row)
+      continue
+    }
+    if (!row.job_id) {
+      out.push(await startTemplateJob(c, row))
+      continue
+    }
+    try {
+      const job = await newlyAi(c.env, 'templates').get(row.job_id)
+      const [updated] = await d
+        .update(characterTemplates)
+        .set({ status: settle(job.status), error: job.error })
+        .where(eq(characterTemplates.id, row.id))
+        .returning()
+      out.push(updated ?? row)
+    } catch {
+      out.push(row)
+    }
+  }
+  return out
 }
 
 // ---------- Postcards ----------
@@ -223,27 +260,22 @@ extraRoutes.post('/admin/templates/generate', async (c) => {
     names = []
   }
   const d = db(c)
+  // Save every requested character first, then start as many images as the AI service accepts now.
+  const rows = await d
+    .insert(characterTemplates)
+    .values(
+      Array.from({ length: count }, (_, i) => ({
+        name: (names[i] ?? `Character ${i + 1}`).slice(0, 24),
+        description: 'A Flikkable ready for adventure!',
+        prompt: `Single character only, ${style}, unique design ${i + 1}, vibrant colors, white background, square format, one character centered`,
+        rarity: RARITIES[Math.floor(Math.random() * RARITIES.length)]!,
+        job_id: '',
+        status: 'queued',
+      })),
+    )
+    .returning()
   const created: CharacterTemplateRow[] = []
-  for (let i = 0; i < count; i++) {
-    const prompt = `Single character only, ${style}, unique design ${i + 1}, vibrant colors, white background, square format, one character centered`
-    try {
-      const job = await ai.generate({ model: 'image', prompt, width: 1024, height: 1024 }, `tpl-${stamp}-${i}`)
-      const [row] = await d
-        .insert(characterTemplates)
-        .values({
-          name: (names[i] ?? `Character ${i + 1}`).slice(0, 24),
-          description: 'A Flikkable ready for adventure!',
-          prompt,
-          rarity: RARITIES[Math.floor(Math.random() * RARITIES.length)]!,
-          job_id: job.id,
-          status: job.status,
-        })
-        .returning()
-      if (row) created.push(row)
-    } catch (err) {
-      if (created.length === 0 && err instanceof NewlyAiError) return c.json({ error: 'Character generation is unavailable right now.' }, 503)
-    }
-  }
+  for (const row of rows) created.push(await startTemplateJob(c, row))
   return c.json({ templates: created })
 })
 

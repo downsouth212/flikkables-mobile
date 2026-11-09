@@ -7,7 +7,7 @@ import { useRemote } from '@/features/places/hooks/use-remote';
 import { placesApi } from '@/features/places/utils/places-api';
 
 const mapsURL = (attraction: string, place: string) =>
-  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${attraction}, ${place}`)}`;
+  `https://www.google.com/search?q=${encodeURIComponent(`${attraction} ${place}`)}`;
 
 export function CityInfoSection({ place }: { place: string }) {
   const accent = useThemeColor('accent');
@@ -29,7 +29,7 @@ export function CityInfoSection({ place }: { place: string }) {
         <View className="gap-1">
           <Text className="text-xs font-semibold text-muted">Top attractions</Text>
           {data.attractions.map((a, i) => (
-            <Pressable key={a} onPress={() => void Linking.openURL(mapsURL(a, place))} accessibilityLabel={`Open ${a} in Google Maps`}>
+            <Pressable key={a} onPress={() => void Linking.openURL(mapsURL(a, place))} accessibilityLabel={`Open ${a} on Google`}>
               <View className="flex-row items-center gap-2 py-1">
                 <Text className="w-4 text-xs text-muted">{i + 1}</Text>
                 <Text className="flex-1 text-sm font-medium text-accent underline">{a}</Text>
