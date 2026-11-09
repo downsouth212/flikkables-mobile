@@ -7,7 +7,8 @@ export function depthScale(yPct: number) {
 
 /** The walkable floor of each painted backdrop, in percent of the scene. */
 export const GROUND = {
-  garden: { left: 10, right: 88, top: 52, bottom: 90 },
+  // The flower beds take the lower-left lawn, so Flikkables stroll the rest.
+  garden: { left: 54, right: 88, top: 50, bottom: 90 },
   airport: { left: 10, right: 90, top: 46, bottom: 90 },
 } as const;
 

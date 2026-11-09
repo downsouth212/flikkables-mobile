@@ -5,7 +5,10 @@ import { pressHaptic } from '@/components/pressable';
 import { BackHeader } from '@/features/game/components/back-header';
 import { CharacterCard } from '@/features/game/components/character-card';
 import { GameDialog } from '@/features/game/components/game-dialog';
-import { PlaceScene } from '@/features/game/components/place-scene';
+import { AirportScene } from '@/features/game/components/airport-scene';
+import { DeparturesBoard } from '@/features/game/components/departures-board';
+import { GardenScene } from '@/features/game/components/garden-scene';
+import { Passport } from '@/features/game/components/passport';
 import { usePlaceScreen } from '@/features/game/hooks/use-place-screen';
 
 export default function PlaceScreen() {
@@ -53,10 +56,18 @@ export default function PlaceScreen() {
           </Button>
         ) : null}
 
-        <PlaceScene kind={s.kind} characters={s.characters} items={s.placed} onCharacterPress={(f) => s.setOpenID(f.id)} />
+        {garden ? (
+          <GardenScene characters={s.characters} items={s.placed} onPet={s.pet} onFeed={s.treat} onDetails={(f) => s.setOpenID(f.id)} />
+        ) : (
+          <>
+            <DeparturesBoard away={s.away} />
+            <AirportScene characters={s.characters} items={s.placed} onPassport={(f) => s.setOpenID(f.id)} onBoard={s.selectForFlick} />
+          </>
+        )}
       </ScrollView>
 
-      <GameDialog isOpen={!!s.open} onClose={() => s.setOpenID(null)} title={garden ? 'In Garden' : 'Ready to Flikk'}>
+      <GameDialog isOpen={!!s.open} onClose={() => s.setOpenID(null)} title={garden ? 'In Garden' : 'Ready to Flikk'} scroll>
+        {!garden && s.open ? <Passport f={s.open} /> : null}
         {s.open ? (
           <CharacterCard
             f={s.open}

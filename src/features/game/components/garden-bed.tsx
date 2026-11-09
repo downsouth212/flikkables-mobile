@@ -8,12 +8,12 @@ import { depthScale } from '@/features/game/utils/scene-depth';
 import { durations, easings } from '@/lib/motion';
 
 export const BED_SPOTS = [
-  { x: 16, y: 74 },
-  { x: 31, y: 74 },
-  { x: 46, y: 74 },
-  { x: 14, y: 88 },
-  { x: 31, y: 88 },
-  { x: 48, y: 88 },
+  { x: 14, y: 72 },
+  { x: 29, y: 72 },
+  { x: 44, y: 72 },
+  { x: 12, y: 88 },
+  { x: 29, y: 88 },
+  { x: 46, y: 88 },
 ] as const;
 
 function stageOf(plant: GardenPlant | undefined) {
@@ -59,15 +59,15 @@ export function GardenBed({
   return (
     <View
       className="absolute"
-      style={{ left: `${spot.x}%`, top: `${spot.y}%`, zIndex: Math.round(spot.y * 4), transform: [{ translateX: -32 }, { translateY: -40 }, { scale: depthScale(spot.y) }] }}
+      style={{ left: `${spot.x}%`, top: `${spot.y}%`, zIndex: Math.round(spot.y * 4), transform: [{ translateX: -24 }, { translateY: -40 }, { scale: depthScale(spot.y) }] }}
     >
       <Pressable onPress={press} accessibilityLabel={label}>
-        <View className="w-16 items-center">
+        <View className="w-12 items-center">
           <Animated.View style={[{ transformOrigin: 'bottom' }, swayStyle]} className="h-9 justify-end">
             {glyph ? <Text className={stage === 'ready' ? 'text-3xl' : 'text-2xl'}>{glyph}</Text> : <Text className="text-xs font-bold text-white">+ seed</Text>}
           </Animated.View>
-          <View className="h-6 w-16 items-center justify-center rounded-full border-2 border-soil-rim bg-soil">
-            <View className="h-2 w-10 rounded-full bg-shade/30" />
+          <View className="h-5 w-12 items-center justify-center rounded-full border-2 border-soil-rim bg-soil">
+            <View className="h-1.5 w-8 rounded-full bg-shade/30" />
           </View>
         </View>
       </Pressable>

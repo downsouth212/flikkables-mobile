@@ -6,6 +6,7 @@ import { Presets } from 'react-native-pulsar';
 import { usePlaceItems } from '@/features/game/hooks/use-place-items';
 import { useGameStore } from '@/features/game/store/game-store';
 import type { Flikkable, PlaceKind } from '@/features/game/types/game';
+import { gameApi } from '@/features/game/utils/game-api';
 
 function message(err: unknown) {
   return err instanceof Error ? err.message : 'Something went wrong. Try again.';
@@ -61,6 +62,18 @@ export function usePlaceScreen() {
     });
 
   const feed = (f: Flikkable) => run(() => useGameStore.getState().feed(f.id));
+  const treat = (f: Flikkable) => run(() => useGameStore.getState().feed(f.id), `${f.name} loved the treat! 🍪`);
+
+  const pet = async (f: Flikkable) => {
+    try {
+      const { flikkable, boosted } = await gameApi.pet(f.id);
+      useGameStore.getState().upsert(flikkable);
+      if (boosted) toast.show({ label: `${f.name} is happier 💖`, variant: 'success' });
+    } catch {
+      // Petting is a feel-good gesture; a failed happiness boost isn't worth an error.
+    }
+  };
+  const away = mine.filter((f) => f.status !== 'home');
 
   const selectForFlick = (f: Flikkable) => {
     useGameStore.getState().select(f.id);
@@ -81,6 +94,9 @@ export function usePlaceScreen() {
     moveOne,
     moveAll,
     feed,
+    treat,
+    pet,
+    away,
     selectForFlick,
     play: (f: Flikkable) => {
       setOpenID(null);

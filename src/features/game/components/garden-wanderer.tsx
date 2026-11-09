@@ -84,10 +84,12 @@ export function GardenWanderer({
   const hearts = useSharedValue(0);
 
   useEffect(() => {
-    registry.current?.set(f.id, { x, y });
-    return () => {
-      registry.current?.delete(f.id);
+    const map = registry.current;
+    map?.set(f.id, { x, y });
+    const forget = () => {
+      map?.delete.call(map, f.id);
     };
+    return forget;
   }, [f.id, registry, x, y]);
 
   useEffect(() => {
@@ -126,14 +128,27 @@ export function GardenWanderer({
   };
   const details = () => onDetails(f);
 
-  const tap = Gesture.Tap().onEnd(() => {
+  const tap = Gesture.Tap()
+    .hitSlop(12)
+    .onBegin(() => {
+      // Stop mid-stroll the moment a finger lands, so a walking Flikkable is easy to pet.
+      cancelAnimation(x);
+      cancelAnimation(y);
+    })
+    .onEnd(() => {
     pop.set(withSequence(withSpring(1.22, springs.press), withSpring(1, springs.settle)));
     jump.set(withSequence(withTiming(-14, { duration: durations.fast, easing: easings.enter }), withSpring(0, springs.settle)));
     hearts.set(0);
     hearts.set(withTiming(1, { duration: durations.hearts, easing: easings.enter }));
     scheduleOnRN(pet);
   });
-  const hold = Gesture.LongPress().onStart(() => {
+  const hold = Gesture.LongPress()
+    .hitSlop(12)
+    .onBegin(() => {
+      cancelAnimation(x);
+      cancelAnimation(y);
+    })
+    .onStart(() => {
     scheduleOnRN(details);
   });
   const gesture = Gesture.Exclusive(hold, tap);
